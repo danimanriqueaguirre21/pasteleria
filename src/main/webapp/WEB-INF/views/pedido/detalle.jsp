@@ -1,0 +1,225 @@
+
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ taglib prefix="c" uri="jakarta.tags.core" %>
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Detalle del pedido - Mi Pastelería</title>
+
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/estilos.css">
+</head>
+
+<body>
+
+<header class="cabecera">
+    <div class="logo">
+        <h1>Mi Pastelería</h1>
+        <p>Detalle de tu compra</p>
+    </div>
+
+    <nav class="menu" aria-label="Navegación principal">
+        <a href="${pageContext.request.contextPath}/catalogo">Inicio</a>
+        <a class="activo" href="${pageContext.request.contextPath}/pedido/historial">
+            Mis pedidos
+        </a>
+    </nav>
+</header>
+
+<main class="contenido detalle-pagina">
+
+    <div class="titulo-seccion">
+        <h2>
+            Detalle del pedido #<c:out value="${pedido.idPedido}"/>
+        </h2>
+
+        <p>Consulta la información y los productos de tu compra.</p>
+    </div>
+
+    <section class="tarjeta detalle-tarjeta"
+             aria-label="Información general del pedido">
+
+        <h3>Información del pedido</h3>
+
+        <div class="informacion">
+
+            <p>
+                <strong>Fecha:</strong>
+                <c:out value="${pedido.fechaPedido}"/>
+            </p>
+
+            <p>
+                <strong>Dirección de entrega:</strong>
+                <c:out value="${pedido.direccionEntrega}"/>
+            </p>
+
+            <p>
+                <strong>Teléfono:</strong>
+                <c:out value="${pedido.telefono}"/>
+            </p>
+
+            <p>
+                <strong>Estado:</strong>
+
+                <c:choose>
+                    <c:when test="${pedido.estado eq 'RECIBIDO'}">
+                        <span class="estado recibido">RECIBIDO</span>
+                    </c:when>
+
+                    <c:when test="${pedido.estado eq 'EN PREPARACIÓN'}">
+                        <span class="estado preparacion">EN PREPARACIÓN</span>
+                    </c:when>
+
+                    <c:when test="${pedido.estado eq 'LISTO'}">
+                        <span class="estado listo">LISTO</span>
+                    </c:when>
+
+                    <c:when test="${pedido.estado eq 'ASIGNADO'}">
+                        <span class="estado asignado">ASIGNADO</span>
+                    </c:when>
+
+                    <c:when test="${pedido.estado eq 'EN CAMINO'}">
+                        <span class="estado camino">EN CAMINO</span>
+                    </c:when>
+
+                    <c:when test="${pedido.estado eq 'ENTREGADO'}">
+                        <span class="estado entregado">ENTREGADO</span>
+                    </c:when>
+
+                    <c:when test="${pedido.estado eq 'CANCELADO'}">
+                        <span class="estado cancelado">CANCELADO</span>
+                    </c:when>
+
+                    <c:otherwise>
+                        <span class="estado">
+                            <c:out value="${pedido.estado}"/>
+                        </span>
+                    </c:otherwise>
+                </c:choose>
+            </p>
+
+            <p>
+                <strong>Medio de pago:</strong>
+
+                <span class="medio-pago">
+                    <c:choose>
+                        <c:when test="${pedido.medioPago eq 'YAPE'}">
+                            📱 Yape
+                        </c:when>
+
+                        <c:when test="${pedido.medioPago eq 'PLIN'}">
+                            📲 Plin
+                        </c:when>
+
+                        <c:when test="${pedido.medioPago eq 'TARJETA'}">
+                            💳 Tarjeta
+                        </c:when>
+
+                        <c:otherwise>
+                            Sin medio de pago
+                        </c:otherwise>
+                    </c:choose>
+                </span>
+            </p>
+
+            <c:if test="${not empty pedido.codigoSeguimiento}">
+                <p>
+                    <strong>Código de seguimiento:</strong>
+                    <span class="codigo-seguimiento">
+                        <c:out value="${pedido.codigoSeguimiento}"/>
+                    </span>
+                </p>
+
+                <c:url var="urlSeguimiento" value="/pedido/seguimiento">
+                    <c:param name="codigo" value="${pedido.codigoSeguimiento}"/>
+                </c:url>
+
+                <p>
+                    <a class="boton"
+                       href="<c:out value='${urlSeguimiento}'/>">
+                        Consultar seguimiento
+                    </a>
+                </p>
+            </c:if>
+
+            <c:if test="${empty pedido.codigoSeguimiento}">
+                <p class="nota-pago">
+                    Este pedido no tiene un código de seguimiento registrado.
+                </p>
+            </c:if>
+
+        </div>
+
+    </section>
+
+    <section class="tarjeta detalle-tarjeta"
+             aria-label="Productos comprados">
+
+        <h3>Productos de la compra</h3>
+
+        <div class="tabla-contenedor">
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Producto</th>
+                        <th>Cantidad</th>
+                        <th>Precio unitario</th>
+                        <th>Subtotal</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    <c:forEach var="detalle" items="${detalles}">
+                        <tr>
+                            <td>
+                                <c:choose>
+                                    <c:when test="${not empty detalle.nombreProducto}">
+                                        <c:out value="${detalle.nombreProducto}"/>
+                                    </c:when>
+                                    <c:otherwise>
+                                        Producto #<c:out value="${detalle.idProducto}"/>
+                                    </c:otherwise>
+                                </c:choose>
+                            </td>
+
+                            <td>
+                                <c:out value="${detalle.cantidad}"/>
+                            </td>
+
+                            <td>
+                                S/ <c:out value="${detalle.precioUnitario}"/>
+                            </td>
+
+                            <td>
+                                S/ <c:out value="${detalle.subtotal}"/>
+                            </td>
+                        </tr>
+                    </c:forEach>
+                </tbody>
+            </table>
+
+        </div>
+
+        <div class="total">
+            Total: S/ <c:out value="${pedido.total}"/>
+        </div>
+
+    </section>
+
+    <a class="boton boton-volver"
+       href="${pageContext.request.contextPath}/pedido/historial">
+        Volver a mis pedidos
+    </a>
+
+</main>
+
+<footer class="pie">
+    Mi Pastelería - Productos hechos con cariño
+</footer>
+
+</body>
+</html>
