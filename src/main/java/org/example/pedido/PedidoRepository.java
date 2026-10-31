@@ -8,7 +8,6 @@ import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 
 import java.sql.PreparedStatement;
-import java.sql.Timestamp;
 import java.sql.Types;
 import java.util.List;
 
@@ -21,43 +20,14 @@ public class PedidoRepository implements PedidoDAO {
         this.jdbcTemplate = jdbcTemplate;
     }
 
-    private final RowMapper<Pedido> pedidoRowMapper = (rs, rowNum) -> {
+    private static final String SELECT_DETALLES = """
+            SELECT d.id_detalle, d.id_pedido, d.id_producto, d.cantidad,
+                   d.precio_unitario, d.subtotal, p.nombre AS nombre_producto
+            FROM detalle_pedido d
+            LEFT JOIN producto p ON p.id_producto = d.id_producto
+            """;
 
-        Pedido pedido = new Pedido();
-
-        pedido.setIdPedido(rs.getInt("id_pedido"));
-        pedido.setIdUsuario(rs.getInt("id_usuario"));
-
-        Timestamp fechaPedido = rs.getTimestamp("fecha_pedido");
-
-        if (fechaPedido != null) {
-            pedido.setFechaPedido(fechaPedido.toLocalDateTime());
-        }
-
-        Timestamp fechaEntrega = rs.getTimestamp("fecha_entrega");
-
-        if (fechaEntrega != null) {
-            pedido.setFechaEntrega(fechaEntrega.toLocalDateTime());
-        }
-
-        pedido.setDireccionEntrega(rs.getString("direccion_entrega"));
-        pedido.setTelefono(rs.getString("telefono"));
-        pedido.setTotal(rs.getBigDecimal("total"));
-        pedido.setEstado(rs.getString("estado"));
-        pedido.setMedioPago(rs.getString("medio_pago"));
-
-        int idRepartidor = rs.getInt("id_repartidor");
-
-        pedido.setIdRepartidor(
-                rs.wasNull() ? null : idRepartidor
-        );
-
-        pedido.setCodigoSeguimiento(
-                rs.getString("codigo_seguimiento")
-        );
-
-        return pedido;
-    };
+    private final RowMapper<Pedido> pedidoRowMapper = new PedidoRowMapper();
 
     private final RowMapper<DetallePedido> detalleRowMapper = (rs, rowNum) -> {
 
@@ -202,14 +172,8 @@ public class PedidoRepository implements PedidoDAO {
     @Override
     public List<DetallePedido> listarDetallesPorPedido(int idPedido) {
 
-        String sql = """
-                SELECT d.id_detalle, d.id_pedido, d.id_producto, d.cantidad,
-                       d.precio_unitario, d.subtotal, p.nombre AS nombre_producto
-                FROM detalle_pedido d
-                LEFT JOIN producto p ON p.id_producto = d.id_producto
-                WHERE d.id_pedido = ?
-                ORDER BY d.id_detalle
-                """;
+        String sql = SELECT_DETALLES
+                + "WHERE d.id_pedido = ? ORDER BY d.id_detalle";
 
         return jdbcTemplate.query(
                 sql,
@@ -220,13 +184,8 @@ public class PedidoRepository implements PedidoDAO {
 
     @Override
     public List<DetallePedido> listarTodosLosDetalles() {
-        String sql = """
-                SELECT d.id_detalle, d.id_pedido, d.id_producto, d.cantidad,
-                       d.precio_unitario, d.subtotal, p.nombre AS nombre_producto
-                FROM detalle_pedido d
-                LEFT JOIN producto p ON p.id_producto = d.id_producto
-                ORDER BY d.id_pedido, d.id_detalle
-                """;
+        String sql = SELECT_DETALLES
+                + "ORDER BY d.id_pedido, d.id_detalle";
 
         return jdbcTemplate.query(sql, detalleRowMapper);
     }
@@ -243,25 +202,6 @@ public class PedidoRepository implements PedidoDAO {
         return jdbcTemplate.query(
                 sql,
                 pedidoRowMapper
-        );
-    }
-
-    @Override
-    public int asignarRepartidor(int idPedido, int idRepartidor) {
-
-        String sql = """
-        UPDATE pedido
-        SET id_repartidor = ?,
-            estado = 'ASIGNADO'
-        WHERE id_pedido = ?
-          AND estado = 'LISTO'
-          AND id_repartidor IS NULL
-        """;
-
-        return jdbcTemplate.update(
-                sql,
-                idRepartidor,
-                idPedido
         );
     }
 

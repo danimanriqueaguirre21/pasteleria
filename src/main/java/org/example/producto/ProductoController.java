@@ -24,7 +24,7 @@ public class ProductoController {
         model.addAttribute("productos", productoService.listarProductos());
         model.addAttribute("nombresCategorias", categoriaService.nombresPorId());
 
-        return "producto/lista";
+        return "producto/lista-productos";
     }
 
     @GetMapping("/nuevo")
@@ -33,7 +33,7 @@ public class ProductoController {
         model.addAttribute("categorias",
                 categoriaService.listarCategorias());
 
-        return "producto/formulario";
+        return "producto/formulario-producto";
     }
 
     @PostMapping("/guardar")
@@ -50,7 +50,7 @@ public class ProductoController {
             model.addAttribute("producto", producto);
             model.addAttribute("categorias",
                     categoriaService.listarCategorias());
-            return "producto/formulario";
+            return "producto/formulario-producto";
         }
 
         return "redirect:/productos";
@@ -69,7 +69,7 @@ public class ProductoController {
         model.addAttribute("categorias",
                 categoriaService.listarCategorias());
 
-        return "producto/formulario";
+        return "producto/formulario-producto";
     }
 
     @PostMapping("/desactivar/{id}")

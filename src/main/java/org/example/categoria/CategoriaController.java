@@ -23,7 +23,7 @@ public class CategoriaController {
                 categoriaService.listarCategorias()
         );
 
-        return "categoria/lista";
+        return "categoria/lista-categorias";
     }
 
     @GetMapping("/nuevo")
@@ -31,7 +31,7 @@ public class CategoriaController {
 
         model.addAttribute("categoria", new Categoria());
 
-        return "categoria/categoria";
+        return "categoria/formulario-categoria";
     }
 
     @PostMapping("/guardar")
@@ -46,7 +46,7 @@ public class CategoriaController {
         } catch (IllegalArgumentException e) {
             model.addAttribute("error", e.getMessage());
             model.addAttribute("categoria", categoria);
-            return "categoria/categoria";
+            return "categoria/formulario-categoria";
         }
 
         return "redirect:/categorias";
@@ -64,7 +64,7 @@ public class CategoriaController {
 
         model.addAttribute("categoria", categoria);
 
-        return "categoria/categoria";
+        return "categoria/formulario-categoria";
     }
 
     @PostMapping("/desactivar/{id}")

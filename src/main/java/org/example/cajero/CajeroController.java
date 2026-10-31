@@ -49,14 +49,13 @@ public class CajeroController {
         model.addAttribute("nombresClientes", pedidoService.nombresDeClientes(pedidos));
         model.addAttribute("pendientes", conteo.get("RECIBIDO"));
         model.addAttribute("enPreparacion", conteo.get("EN PREPARACIÓN"));
-        model.addAttribute("listos", conteo.get("LISTO"));
         model.addAttribute("asignados", conteo.get("ASIGNADO"));
         model.addAttribute("enCamino", conteo.get("EN CAMINO"));
         model.addAttribute("entregados", conteo.get("ENTREGADO"));
         model.addAttribute("repartidores", usuarioService.listarActivosPorRol("REPARTIDOR"));
         model.addAttribute("productos", productoService.listarProductosActivos());
 
-        return "cajero/panel";
+        return "cajero/punto-de-venta";
     }
 
     @PostMapping("/venta")

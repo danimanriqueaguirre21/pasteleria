@@ -10,13 +10,16 @@ public class WebConfig implements WebMvcConfigurer {
 
     private final AutorizacionInterceptor autorizacionInterceptor;
     private final MenuClienteInterceptor menuClienteInterceptor;
+    private final SesionInterceptor sesionInterceptor;
 
     public WebConfig(
             AutorizacionInterceptor autorizacionInterceptor,
-            MenuClienteInterceptor menuClienteInterceptor) {
+            MenuClienteInterceptor menuClienteInterceptor,
+            SesionInterceptor sesionInterceptor) {
 
         this.autorizacionInterceptor = autorizacionInterceptor;
         this.menuClienteInterceptor = menuClienteInterceptor;
+        this.sesionInterceptor = sesionInterceptor;
     }
 
     @Override
@@ -45,6 +48,12 @@ public class WebConfig implements WebMvcConfigurer {
                         "/contacto/**",
                         "/carrito",
                         "/carrito/**"
+                );
+
+        registry.addInterceptor(sesionInterceptor)
+                .addPathPatterns(
+                        "/pedido",
+                        "/pedido/**"
                 );
     }
 }

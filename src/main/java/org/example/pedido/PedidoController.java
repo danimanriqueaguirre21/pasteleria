@@ -31,12 +31,6 @@ public class PedidoController {
             Model model,
             RedirectAttributes redirectAttributes) {
 
-        Integer idUsuario = (Integer) session.getAttribute("idUsuario");
-
-        if (idUsuario == null) {
-            return "redirect:/usuario/login";
-        }
-
         List<ItemCarrito> carrito = obtenerCarrito(session);
 
         if (carrito == null || carrito.isEmpty()) {
@@ -47,7 +41,7 @@ public class PedidoController {
         model.addAttribute("carrito", carrito);
         model.addAttribute("total", carritoService.calcularTotal(carrito));
 
-        return "pedido/confirmar";
+        return "pedido/confirmar-pedido";
     }
 
     @PostMapping("/pedido/confirmar")
@@ -58,11 +52,7 @@ public class PedidoController {
             HttpSession session,
             RedirectAttributes redirectAttributes) {
 
-        Integer idUsuario = (Integer) session.getAttribute("idUsuario");
-
-        if (idUsuario == null) {
-            return "redirect:/usuario/login";
-        }
+        Integer idUsuario = idUsuario(session);
 
         List<ItemCarrito> carrito = obtenerCarrito(session);
 
@@ -100,11 +90,7 @@ public class PedidoController {
             HttpSession session,
             Model model) {
 
-        Integer idUsuario = (Integer) session.getAttribute("idUsuario");
-
-        if (idUsuario == null) {
-            return "redirect:/usuario/login";
-        }
+        Integer idUsuario = idUsuario(session);
 
         Pedido pedido = pedidoService.obtenerPedidoPorId(id);
 
@@ -114,23 +100,19 @@ public class PedidoController {
 
         model.addAttribute("pedido", pedido);
 
-        return "pedido/exito";
+        return "pedido/pedido-registrado";
     }
 
     @GetMapping("/pedido/historial")
     public String mostrarHistorial(HttpSession session, Model model) {
-        Integer idUsuario = (Integer) session.getAttribute("idUsuario");
-
-        if (idUsuario == null) {
-            return "redirect:/usuario/login";
-        }
+        Integer idUsuario = idUsuario(session);
 
         model.addAttribute(
                 "pedidos",
                 pedidoService.listarPedidosPorUsuario(idUsuario)
         );
 
-        return "pedido/historial";
+        return "pedido/mis-pedidos";
     }
 
     @GetMapping("/pedido/detalle")
@@ -139,11 +121,7 @@ public class PedidoController {
             HttpSession session,
             Model model) {
 
-        Integer idUsuario = (Integer) session.getAttribute("idUsuario");
-
-        if (idUsuario == null) {
-            return "redirect:/usuario/login";
-        }
+        Integer idUsuario = idUsuario(session);
 
         Pedido pedido = pedidoService.obtenerPedidoPorId(idPedido);
 
@@ -157,7 +135,7 @@ public class PedidoController {
                 pedidoService.listarDetallesPorPedido(idPedido)
         );
 
-        return "pedido/detalle";
+        return "pedido/detalle-pedido";
     }
 
     @PostMapping("/pedido/cancelar")
@@ -166,11 +144,7 @@ public class PedidoController {
             HttpSession session,
             RedirectAttributes redirectAttributes) {
 
-        Integer idUsuario = (Integer) session.getAttribute("idUsuario");
-
-        if (idUsuario == null) {
-            return "redirect:/usuario/login";
-        }
+        Integer idUsuario = idUsuario(session);
 
         try {
             pedidoService.cancelarPedido(idPedido, idUsuario);
@@ -193,14 +167,10 @@ public class PedidoController {
             HttpSession session,
             Model model) {
 
-        Integer idUsuario = (Integer) session.getAttribute("idUsuario");
-
-        if (idUsuario == null) {
-            return "redirect:/usuario/login";
-        }
+        Integer idUsuario = idUsuario(session);
 
         if (codigo == null || codigo.isBlank()) {
-            return "pedido/seguimiento";
+            return "pedido/seguimiento-pedido";
         }
 
         String codigoNormalizado = codigo.trim().toUpperCase(Locale.ROOT);
@@ -209,7 +179,7 @@ public class PedidoController {
 
         if (codigoNormalizado.length() > 30) {
             model.addAttribute("error", "El código de seguimiento es demasiado largo.");
-            return "pedido/seguimiento";
+            return "pedido/seguimiento-pedido";
         }
 
         try {
@@ -228,11 +198,15 @@ public class PedidoController {
             model.addAttribute("error", e.getMessage());
         }
 
-        return "pedido/seguimiento";
+        return "pedido/seguimiento-pedido";
     }
 
     @SuppressWarnings("unchecked")
     private List<ItemCarrito> obtenerCarrito(HttpSession session) {
         return (List<ItemCarrito>) session.getAttribute("carrito");
+    }
+
+    private Integer idUsuario(HttpSession session) {
+        return (Integer) session.getAttribute("idUsuario");
     }
 }

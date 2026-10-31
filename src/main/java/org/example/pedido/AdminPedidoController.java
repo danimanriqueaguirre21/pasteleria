@@ -1,8 +1,6 @@
 
 package org.example.pedido;
 
-import jakarta.servlet.http.HttpSession;
-import org.example.usuario.UsuarioService;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -15,43 +13,27 @@ import java.util.List;
 public class AdminPedidoController {
 
     private final PedidoService pedidoService;
-    private final UsuarioService usuarioService;
 
-    public AdminPedidoController(PedidoService pedidoService, UsuarioService usuarioService) {
+    public AdminPedidoController(PedidoService pedidoService) {
         this.pedidoService = pedidoService;
-        this.usuarioService = usuarioService;
-    }
-
-    private boolean esAdministrador(HttpSession session) {
-        Integer idUsuario = (Integer) session.getAttribute("idUsuario");
-        return usuarioService.tieneRol(idUsuario, "ADMINISTRADOR");
     }
 
     @GetMapping
-    public String listarPedidos(HttpSession session, Model model) {
-        if (!esAdministrador(session)) {
-            return "redirect:/usuario/login";
-        }
-
+    public String listarPedidos(Model model) {
         List<Pedido> pedidos = pedidoService.listarTodosLosPedidos();
 
         model.addAttribute("bloques", pedidoService.agruparPorEstado(pedidos));
         model.addAttribute("nombresClientes", pedidoService.nombresDeClientes(pedidos));
         model.addAttribute("resumenProductos", pedidoService.resumirProductos());
 
-        return "admin/pedidos";
+        return "admin/pedidos-registrados";
     }
 
     @PostMapping("/estado")
     public String actualizarEstado(
             @RequestParam int idPedido,
             @RequestParam String nuevoEstado,
-            HttpSession session,
             RedirectAttributes redirectAttributes) {
-
-        if (!esAdministrador(session)) {
-            return "redirect:/usuario/login";
-        }
 
         try {
             pedidoService.actualizarEstadoPedido(idPedido, nuevoEstado);

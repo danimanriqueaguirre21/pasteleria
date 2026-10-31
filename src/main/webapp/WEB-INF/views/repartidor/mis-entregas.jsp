@@ -152,8 +152,15 @@
                         </td>
 
                         <td>
-                            Usuario #
-                            <c:out value="${pedido.idUsuario}"/>
+                            <c:choose>
+                                <c:when test="${not empty nombresClientes[pedido.idUsuario]}">
+                                    <c:out value="${nombresClientes[pedido.idUsuario]}"/>
+                                </c:when>
+
+                                <c:otherwise>
+                                    Usuario #<c:out value="${pedido.idUsuario}"/>
+                                </c:otherwise>
+                            </c:choose>
                         </td>
 
                         <td class="direccion">

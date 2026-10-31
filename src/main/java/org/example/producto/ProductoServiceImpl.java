@@ -9,12 +9,9 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
-import java.util.Objects;
 
 @Service
-public class
-
-ProductoServiceImpl implements ProductoService {
+public class ProductoServiceImpl implements ProductoService {
 
     private final ProductoDAO productoDAO;
     private final CategoriaService categoriaService;
@@ -41,14 +38,22 @@ ProductoServiceImpl implements ProductoService {
             Integer idCategoria,
             boolean soloDisponibles) {
 
-        String texto = buscar == null ? "" : buscar.trim().toLowerCase(Locale.ROOT);
+        String texto = "";
+
+        if (buscar != null) {
+            texto = buscar.trim().toLowerCase(Locale.ROOT);
+        }
+
         List<Producto> resultado = new ArrayList<>();
 
         for (Producto producto : productoDAO.listarProductosActivos()) {
-            if (!texto.isEmpty()
-                    && (producto.getNombre() == null
-                    || !producto.getNombre().toLowerCase(Locale.ROOT).contains(texto))) {
-                continue;
+            if (!texto.isEmpty()) {
+                String nombreProducto = producto.getNombre();
+
+                if (nombreProducto == null
+                        || !nombreProducto.toLowerCase(Locale.ROOT).contains(texto)) {
+                    continue;
+                }
             }
 
             if (idCategoria != null && !idCategoria.equals(producto.getIdCategoria())) {
@@ -68,6 +73,21 @@ ProductoServiceImpl implements ProductoService {
     @Override
     public Producto obtenerProductoPorId(int id) {
         return productoDAO.obtenerProductoPorId(id);
+    }
+
+    @Override
+    public Producto obtenerProductoParaPedido(int id) {
+        return productoDAO.obtenerProductoParaPedido(id);
+    }
+
+    @Override
+    public boolean descontarStock(int idProducto, int cantidad) {
+        return productoDAO.descontarStock(idProducto, cantidad);
+    }
+
+    @Override
+    public int aumentarStock(int idProducto, int cantidad) {
+        return productoDAO.aumentarStock(idProducto, cantidad);
     }
 
     @Override
@@ -98,9 +118,11 @@ ProductoServiceImpl implements ProductoService {
 
     private void validarProducto(Producto producto) {
 
-        String nombre = producto.getNombre() == null
-                ? ""
-                : producto.getNombre().trim();
+        String nombre = "";
+
+        if (producto.getNombre() != null) {
+            nombre = producto.getNombre().trim();
+        }
 
         if (nombre.isEmpty()) {
             throw new IllegalArgumentException(
@@ -109,12 +131,13 @@ ProductoServiceImpl implements ProductoService {
         }
 
         for (Producto existente : productoDAO.listarProductos()) {
-            boolean mismoNombre = existente.getNombre() != null
-                    && existente.getNombre().trim().equalsIgnoreCase(nombre);
-            boolean esOtro = !Objects.equals(
-                    existente.getIdProducto(),
-                    producto.getIdProducto()
-            );
+            if (existente.getNombre() == null) {
+                continue;
+            }
+
+            boolean mismoNombre = existente.getNombre().trim().equalsIgnoreCase(nombre);
+            boolean esOtro = producto.getIdProducto() == null
+                    || !producto.getIdProducto().equals(existente.getIdProducto());
 
             if (mismoNombre && esOtro) {
                 throw new IllegalArgumentException(

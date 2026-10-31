@@ -1,10 +1,9 @@
-
 package org.example.usuario;
 
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
 
@@ -12,7 +11,6 @@ import java.util.Locale;
 public class UsuarioServiceImpl implements UsuarioService {
 
     private final UsuarioDAO usuarioDAO;
-    private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
     public UsuarioServiceImpl(UsuarioDAO usuarioDAO) {
         this.usuarioDAO = usuarioDAO;
@@ -20,9 +18,12 @@ public class UsuarioServiceImpl implements UsuarioService {
 
     @Override
     public void registrarUsuario(Usuario usuario) {
-        validarDatosUsuario(usuario);
-        prepararUsuario(usuario, usuarioDAO.obtenerIdRolPorNombre("CLIENTE"));
-        usuarioDAO.registrarUsuario(usuario);
+        registrarConRol(usuario, "CLIENTE");
+    }
+
+    @Override
+    public void registrarAdministrador(Usuario usuario) {
+        registrarConRol(usuario, "ADMINISTRADOR");
     }
 
     @Override
@@ -37,10 +38,12 @@ public class UsuarioServiceImpl implements UsuarioService {
             throw new IllegalArgumentException("Solo se permite registrar cajeros y repartidores");
         }
 
-        validarDatosUsuario(usuario);
+        registrarConRol(usuario, rolNormalizado);
+    }
 
-        int idRol = usuarioDAO.obtenerIdRolPorNombre(rolNormalizado);
-        prepararUsuario(usuario, idRol);
+    private void registrarConRol(Usuario usuario, String nombreRol) {
+        validarDatosUsuario(usuario);
+        prepararUsuario(usuario, nombreRol);
         usuarioDAO.registrarUsuario(usuario);
     }
 
@@ -66,20 +69,17 @@ public class UsuarioServiceImpl implements UsuarioService {
             throw new IllegalArgumentException("La contraseña debe tener al menos 8 caracteres");
         }
 
-        String correo = usuario.getCorreo().trim().toLowerCase(Locale.ROOT);
-
-        if (usuarioDAO.buscarPorCorreo(correo) != null) {
+        if (existeCorreo(usuario.getCorreo())) {
             throw new IllegalArgumentException("El correo ya está registrado");
         }
     }
 
-    private void prepararUsuario(Usuario usuario, int idRol) {
+    private void prepararUsuario(Usuario usuario, String rol) {
         usuario.setNombres(usuario.getNombres().trim());
         usuario.setApellidos(usuario.getApellidos().trim());
         usuario.setCorreo(usuario.getCorreo().trim().toLowerCase(Locale.ROOT));
-        usuario.setContrasena(passwordEncoder.encode(usuario.getContrasena()));
         usuario.setEstado(true);
-        usuario.setIdRol(idRol);
+        usuario.setRol(rol);
     }
 
     @Override
@@ -88,13 +88,13 @@ public class UsuarioServiceImpl implements UsuarioService {
             return null;
         }
 
-        Usuario usuario = usuarioDAO.buscarPorCorreo(correo.trim().toLowerCase(Locale.ROOT));
+        Usuario usuario = buscarPorCorreo(correo);
 
         if (usuario == null || !usuario.isEstado()) {
             return null;
         }
 
-        if (!passwordEncoder.matches(contrasena, usuario.getContrasena())) {
+        if (!contrasena.equals(usuario.getContrasena())) {
             return null;
         }
 
@@ -107,13 +107,32 @@ public class UsuarioServiceImpl implements UsuarioService {
     }
 
     @Override
+    public Usuario buscarPorCorreo(String correo) {
+        if (correo == null) {
+            return null;
+        }
+
+        return usuarioDAO.buscarPorCorreo(correo.trim().toLowerCase(Locale.ROOT));
+    }
+
+    @Override
+    public boolean existeCorreo(String correo) {
+        return buscarPorCorreo(correo) != null;
+    }
+
+    @Override
+    public List<Usuario> buscarPorIds(Collection<Integer> ids) {
+        return usuarioDAO.listarPorIds(ids);
+    }
+
+    @Override
     public List<Usuario> listarUsuarios() {
         return usuarioDAO.listarUsuarios();
     }
 
     @Override
-    public List<Usuario> listarUsuariosPorRol(int idRol) {
-        return usuarioDAO.listarUsuariosPorRol(idRol);
+    public List<Usuario> listarUsuariosPorRol(String rol) {
+        return usuarioDAO.listarUsuariosPorRol(rol);
     }
 
     @Override
@@ -124,9 +143,7 @@ public class UsuarioServiceImpl implements UsuarioService {
             throw new IllegalArgumentException("El usuario no existe");
         }
 
-        int idAdministrador = usuarioDAO.obtenerIdRolPorNombre("ADMINISTRADOR");
-
-        if (usuario.getIdRol() != null && usuario.getIdRol() == idAdministrador) {
+        if ("ADMINISTRADOR".equals(usuario.getRol())) {
             throw new IllegalArgumentException(
                     "No se permite cambiar el estado de una cuenta administradora desde este módulo"
             );
@@ -143,23 +160,18 @@ public class UsuarioServiceImpl implements UsuarioService {
 
         Usuario usuario = usuarioDAO.obtenerUsuarioPorId(idUsuario);
 
-        if (usuario == null || !usuario.isEstado() || usuario.getIdRol() == null) {
+        if (usuario == null || !usuario.isEstado() || usuario.getRol() == null) {
             return false;
         }
 
-        return usuario.getIdRol().equals(obtenerIdRol(nombreRol));
-    }
-
-    @Override
-    public int obtenerIdRol(String nombreRol) {
-        return usuarioDAO.obtenerIdRolPorNombre(nombreRol);
+        return usuario.getRol().equals(nombreRol);
     }
 
     @Override
     public List<Usuario> listarActivosPorRol(String nombreRol) {
         List<Usuario> activos = new ArrayList<>();
 
-        for (Usuario usuario : usuarioDAO.listarUsuariosPorRol(obtenerIdRol(nombreRol))) {
+        for (Usuario usuario : usuarioDAO.listarUsuariosPorRol(nombreRol)) {
             if (usuario.isEstado()) {
                 activos.add(usuario);
             }

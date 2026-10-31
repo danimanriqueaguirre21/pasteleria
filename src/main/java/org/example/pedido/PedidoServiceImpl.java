@@ -2,11 +2,11 @@ package org.example.pedido;
 
 import org.example.carrito.ItemCarrito;
 import org.example.usuario.Usuario;
-import org.example.usuario.UsuarioDAO;
+import org.example.usuario.UsuarioService;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.example.producto.ProductoDAO;
+import org.example.producto.ProductoService;
 import org.example.producto.Producto;
 
 import java.math.BigDecimal;
@@ -24,18 +24,23 @@ import java.util.UUID;
 @Service
 public class PedidoServiceImpl implements PedidoService {
 
+    private static final Map<String, String> SIGUIENTE_ESTADO = Map.of(
+            "RECIBIDO", "EN PREPARACIÓN",
+            "EN PREPARACIÓN", "LISTO"
+    );
+
     private final PedidoDAO pedidoDAO;
-    private final UsuarioDAO usuarioDAO;
-    private final ProductoDAO productoDAO;
+    private final UsuarioService usuarioService;
+    private final ProductoService productoService;
 
     public PedidoServiceImpl(
             PedidoDAO pedidoDAO,
-            UsuarioDAO usuarioDAO,
-            ProductoDAO productoDAO ) {
+            UsuarioService usuarioService,
+            ProductoService productoService ) {
 
         this.pedidoDAO = pedidoDAO;
-        this.usuarioDAO = usuarioDAO;
-        this.productoDAO = productoDAO;
+        this.usuarioService = usuarioService;
+        this.productoService = productoService;
     }
 
     @Override
@@ -47,7 +52,7 @@ public class PedidoServiceImpl implements PedidoService {
             String medioPago,
             List<ItemCarrito> carrito) {
 
-        Usuario usuario = usuarioDAO.obtenerUsuarioPorId(idUsuario);
+        Usuario usuario = usuarioService.obtenerUsuarioPorId(idUsuario);
 
         if (usuario == null || !usuario.isEstado()) {
             throw new IllegalArgumentException(
@@ -72,8 +77,7 @@ public class PedidoServiceImpl implements PedidoService {
             );
         }
 
-        if (medioPago == null ||
-                !Set.of("YAPE", "PLIN", "TARJETA").contains(medioPago)) {
+        if (!pagoWebValido(medioPago)) {
 
             throw new IllegalArgumentException(
                     "Seleccione un medio de pago válido: Yape, Plin o Tarjeta"
@@ -115,7 +119,7 @@ public class PedidoServiceImpl implements PedidoService {
             }
 
             Producto producto =
-                    productoDAO.obtenerProductoParaPedido(idProducto);
+                    productoService.obtenerProductoParaPedido(idProducto);
 
             if (producto == null) {
                 throw new IllegalArgumentException(
@@ -143,19 +147,10 @@ public class PedidoServiceImpl implements PedidoService {
                 );
             }
 
-            BigDecimal subtotal = producto.getPrecio().multiply(
-                    BigDecimal.valueOf(cantidad)
-            );
-
-            DetallePedido detalle = new DetallePedido();
-
-            detalle.setIdProducto(idProducto);
-            detalle.setCantidad(cantidad);
-            detalle.setPrecioUnitario(producto.getPrecio());
-            detalle.setSubtotal(subtotal);
+            DetallePedido detalle = crearDetalle(producto, cantidad);
 
             detalles.add(detalle);
-            total = total.add(subtotal);
+            total = total.add(detalle.getSubtotal());
         }
 
         Pedido pedido = new Pedido();
@@ -177,13 +172,35 @@ public class PedidoServiceImpl implements PedidoService {
             );
         }
 
+        registrarDetalles(idPedido, detalles);
+
+        return idPedido;
+    }
+
+    private DetallePedido crearDetalle(Producto producto, int cantidad) {
+
+        DetallePedido detalle = new DetallePedido();
+
+        detalle.setIdProducto(producto.getIdProducto());
+        detalle.setCantidad(cantidad);
+        detalle.setPrecioUnitario(producto.getPrecio());
+        detalle.setSubtotal(
+                producto.getPrecio().multiply(BigDecimal.valueOf(cantidad))
+        );
+
+        return detalle;
+    }
+
+    private void registrarDetalles(
+            int idPedido,
+            List<DetallePedido> detalles) {
+
         for (DetallePedido detalle : detalles) {
 
             detalle.setIdPedido(idPedido);
-
             pedidoDAO.registrarDetalle(detalle);
 
-            boolean stockActualizado = productoDAO.descontarStock(
+            boolean stockActualizado = productoService.descontarStock(
                     detalle.getIdProducto(),
                     detalle.getCantidad()
             );
@@ -195,8 +212,6 @@ public class PedidoServiceImpl implements PedidoService {
                 );
             }
         }
-
-        return idPedido;
     }
 
     @Override
@@ -251,12 +266,9 @@ public class PedidoServiceImpl implements PedidoService {
             );
         }
 
-        boolean transicionPermitida =
-                ("RECIBIDO".equals(estadoActual)
-                        && "EN PREPARACIÓN".equals(nuevoEstado))
-                        ||
-                        ("EN PREPARACIÓN".equals(estadoActual)
-                                && "LISTO".equals(nuevoEstado));
+        boolean transicionPermitida = nuevoEstado.equals(
+                SIGUIENTE_ESTADO.get(estadoActual)
+        );
 
         if (!transicionPermitida) {
             throw new IllegalArgumentException(
@@ -365,7 +377,7 @@ public class PedidoServiceImpl implements PedidoService {
             }
 
             int productosActualizados =
-                    productoDAO.aumentarStock(
+                    productoService.aumentarStock(
                             detalle.getIdProducto(),
                             detalle.getCantidad()
                     );
@@ -393,8 +405,7 @@ public class PedidoServiceImpl implements PedidoService {
             );
         }
 
-        if (medioPago == null ||
-                !Set.of("EFECTIVO", "YAPE", "PLIN", "TARJETA").contains(medioPago)) {
+        if (!pagoTiendaValido(medioPago)) {
             throw new IllegalArgumentException(
                     "Seleccione un medio de pago válido"
             );
@@ -407,7 +418,7 @@ public class PedidoServiceImpl implements PedidoService {
             );
         }
 
-        Usuario mostrador = usuarioDAO.buscarPorCorreo("mostrador@pasteleria.com");
+        Usuario mostrador = usuarioService.buscarPorCorreo("mostrador@pasteleria.com");
 
         if (mostrador == null || !mostrador.isEstado()) {
             throw new IllegalStateException(
@@ -425,7 +436,7 @@ public class PedidoServiceImpl implements PedidoService {
                 continue;
             }
 
-            Producto producto = productoDAO.obtenerProductoPorId(idProductos.get(i));
+            Producto producto = productoService.obtenerProductoPorId(idProductos.get(i));
 
             if (producto == null || !producto.isEstado()) {
                 throw new IllegalArgumentException(
@@ -439,17 +450,10 @@ public class PedidoServiceImpl implements PedidoService {
                 );
             }
 
-            BigDecimal subtotal = producto.getPrecio()
-                    .multiply(BigDecimal.valueOf(cantidad));
-
-            DetallePedido detalle = new DetallePedido();
-            detalle.setIdProducto(producto.getIdProducto());
-            detalle.setCantidad(cantidad);
-            detalle.setPrecioUnitario(producto.getPrecio());
-            detalle.setSubtotal(subtotal);
+            DetallePedido detalle = crearDetalle(producto, cantidad);
 
             detalles.add(detalle);
-            total = total.add(subtotal);
+            total = total.add(detalle.getSubtotal());
         }
 
         if (detalles.isEmpty()) {
@@ -471,22 +475,7 @@ public class PedidoServiceImpl implements PedidoService {
         int idPedido = pedidoDAO.registrarPedido(pedido);
         pedidoDAO.registrarFechaEntrega(idPedido);
 
-        for (DetallePedido detalle : detalles) {
-            detalle.setIdPedido(idPedido);
-            pedidoDAO.registrarDetalle(detalle);
-
-            boolean stockActualizado = productoDAO.descontarStock(
-                    detalle.getIdProducto(),
-                    detalle.getCantidad()
-            );
-
-            if (!stockActualizado) {
-                throw new IllegalStateException(
-                        "No se pudo actualizar el stock del producto "
-                                + detalle.getIdProducto()
-                );
-            }
-        }
+        registrarDetalles(idPedido, detalles);
 
         return idPedido;
     }
@@ -542,32 +531,44 @@ public class PedidoServiceImpl implements PedidoService {
 
     @Override
     public Map<Integer, String> nombresDeClientes(List<Pedido> pedidos) {
-        Map<Integer, String> nombres = new HashMap<>();
+        Set<Integer> idsClientes = new HashSet<>();
 
         for (Pedido pedido : pedidos) {
-            Integer idCliente = pedido.getIdUsuario();
-
-            if (idCliente == null || nombres.containsKey(idCliente)) {
-                continue;
+            if (pedido.getIdUsuario() != null) {
+                idsClientes.add(pedido.getIdUsuario());
             }
+        }
 
-            Usuario cliente = usuarioDAO.obtenerUsuarioPorId(idCliente);
+        Map<Integer, Usuario> clientes = new HashMap<>();
 
-            if (cliente == null) {
-                nombres.put(idCliente, "Cliente no encontrado");
-            } else if ("mostrador@pasteleria.com".equals(cliente.getCorreo())) {
-                nombres.put(idCliente, "Venta en tienda");
-            } else {
-                nombres.put(idCliente, cliente.getNombres() + " " + cliente.getApellidos());
-            }
+        for (Usuario cliente : usuarioService.buscarPorIds(idsClientes)) {
+            clientes.put(cliente.getIdUsuario(), cliente);
+        }
+
+        Map<Integer, String> nombres = new HashMap<>();
+
+        for (Integer idCliente : idsClientes) {
+            nombres.put(idCliente, nombreVisible(clientes.get(idCliente)));
         }
 
         return nombres;
     }
 
+    private String nombreVisible(Usuario cliente) {
+        if (cliente == null) {
+            return "Cliente no encontrado";
+        }
+
+        if ("mostrador@pasteleria.com".equals(cliente.getCorreo())) {
+            return "Venta en tienda";
+        }
+
+        return cliente.getNombres() + " " + cliente.getApellidos();
+    }
+
     @Override
     public Map<Integer, String> resumirProductos() {
-        Map<Integer, StringBuilder> textos = new LinkedHashMap<>();
+        Map<Integer, String> resumen = new HashMap<>();
 
         for (DetallePedido detalle : listarTodosLosDetalles()) {
             String nombre = detalle.getNombreProducto();
@@ -576,24 +577,14 @@ public class PedidoServiceImpl implements PedidoService {
                 nombre = "Producto sin nombre";
             }
 
-            StringBuilder texto = textos.computeIfAbsent(
-                    detalle.getIdPedido(),
-                    id -> new StringBuilder()
-            );
+            String linea = nombre + " x " + detalle.getCantidad();
+            String previo = resumen.get(detalle.getIdPedido());
 
-            if (!texto.isEmpty()) {
-                texto.append(", ");
+            if (previo == null) {
+                resumen.put(detalle.getIdPedido(), linea);
+            } else {
+                resumen.put(detalle.getIdPedido(), previo + ", " + linea);
             }
-
-            texto.append(nombre)
-                    .append(" x ")
-                    .append(detalle.getCantidad());
-        }
-
-        Map<Integer, String> resumen = new HashMap<>();
-
-        for (Map.Entry<Integer, StringBuilder> entrada : textos.entrySet()) {
-            resumen.put(entrada.getKey(), entrada.getValue().toString());
         }
 
         return resumen;
@@ -603,21 +594,21 @@ public class PedidoServiceImpl implements PedidoService {
     public Map<String, Long> contarPorEstado(List<Pedido> pedidos) {
         Map<String, Long> conteo = new LinkedHashMap<>();
 
-        for (List<Pedido> bloque : agruparPorEstado(pedidos).values()) {
-            if (!bloque.isEmpty()) {
-                conteo.put(bloque.get(0).getEstado(), (long) bloque.size());
-            }
+        for (Map.Entry<String, List<Pedido>> entrada : agruparPorEstado(pedidos).entrySet()) {
+            conteo.put(entrada.getKey(), (long) entrada.getValue().size());
         }
 
-        conteo.putIfAbsent("RECIBIDO", 0L);
-        conteo.putIfAbsent("EN PREPARACIÓN", 0L);
-        conteo.putIfAbsent("LISTO", 0L);
-        conteo.putIfAbsent("ASIGNADO", 0L);
-        conteo.putIfAbsent("EN CAMINO", 0L);
-        conteo.putIfAbsent("ENTREGADO", 0L);
-        conteo.putIfAbsent("CANCELADO", 0L);
-
         return conteo;
+    }
+
+    private boolean pagoWebValido(String medioPago) {
+        return "YAPE".equals(medioPago)
+                || "PLIN".equals(medioPago)
+                || "TARJETA".equals(medioPago);
+    }
+
+    private boolean pagoTiendaValido(String medioPago) {
+        return "EFECTIVO".equals(medioPago) || pagoWebValido(medioPago);
     }
 
     private String generarCodigoSeguimiento() {

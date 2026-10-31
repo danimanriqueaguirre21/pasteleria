@@ -19,15 +19,8 @@ public class CarritoServiceImpl implements CarritoService {
 
     @Override
     public void agregarProducto(List<ItemCarrito> carrito, int idProducto, int cantidad) {
-        if (cantidad <= 0) {
-            throw new IllegalArgumentException("La cantidad debe ser mayor que cero");
-        }
-
-        Producto producto = productoService.obtenerProductoPorId(idProducto);
-
-        if (producto == null || !producto.isEstado()) {
-            throw new IllegalArgumentException("El producto no existe o está inactivo");
-        }
+        validarCantidad(cantidad);
+        Producto producto = productoActivo(idProducto);
 
         ItemCarrito itemExistente = null;
 
@@ -54,15 +47,8 @@ public class CarritoServiceImpl implements CarritoService {
 
     @Override
     public void actualizarCantidad(List<ItemCarrito> carrito, int idProducto, int cantidad) {
-        if (cantidad <= 0) {
-            throw new IllegalArgumentException("La cantidad debe ser mayor que cero");
-        }
-
-        Producto producto = productoService.obtenerProductoPorId(idProducto);
-
-        if (producto == null || !producto.isEstado()) {
-            throw new IllegalArgumentException("El producto no existe o está inactivo");
-        }
+        validarCantidad(cantidad);
+        Producto producto = productoActivo(idProducto);
 
         if (cantidad > producto.getStock()) {
             throw new IllegalArgumentException("No hay suficiente stock disponible");
@@ -81,7 +67,11 @@ public class CarritoServiceImpl implements CarritoService {
 
     @Override
     public void eliminarProducto(List<ItemCarrito> carrito, int idProducto) {
-        carrito.removeIf(item -> item.getProducto().getIdProducto() == idProducto);
+        for (int i = carrito.size() - 1; i >= 0; i--) {
+            if (carrito.get(i).getProducto().getIdProducto() == idProducto) {
+                carrito.remove(i);
+            }
+        }
     }
 
     @Override
@@ -93,5 +83,21 @@ public class CarritoServiceImpl implements CarritoService {
         }
 
         return total;
+    }
+
+    private void validarCantidad(int cantidad) {
+        if (cantidad <= 0) {
+            throw new IllegalArgumentException("La cantidad debe ser mayor que cero");
+        }
+    }
+
+    private Producto productoActivo(int idProducto) {
+        Producto producto = productoService.obtenerProductoPorId(idProducto);
+
+        if (producto == null || !producto.isEstado()) {
+            throw new IllegalArgumentException("El producto no existe o está inactivo");
+        }
+
+        return producto;
     }
 }

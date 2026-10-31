@@ -1,6 +1,7 @@
 
 package org.example.usuario;
 
+import java.util.Collection;
 import java.util.List;
 
 public interface UsuarioDAO {
@@ -11,13 +12,11 @@ public interface UsuarioDAO {
 
     Usuario obtenerUsuarioPorId(int id);
 
-    int obtenerIdRolPorNombre(String nombre);
+    List<Usuario> listarPorIds(Collection<Integer> ids);
 
     List<Usuario> listarUsuarios();
 
-    List<Usuario> listarUsuariosPorRol(int idRol);
-
-    void actualizarRol(int idUsuario, int idRol);
+    List<Usuario> listarUsuariosPorRol(String rol);
 
     void actualizarEstado(int idUsuario, boolean estado);
 }

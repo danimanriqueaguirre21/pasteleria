@@ -1,4 +1,3 @@
-
 package org.example.estadistica;
 
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -20,58 +19,33 @@ public class EstadisticaRepository implements EstadisticaDAO {
 
     @Override
     public Map<LocalDate, BigDecimal> obtenerVentasDiarias() {
-
-        String sql = """
+        return agruparDecimales("""
                 SELECT
                     CAST(fecha_pedido AS DATE) AS fecha,
                     SUM(total) AS total_ventas
                 FROM pedido
+                WHERE estado <> 'CANCELADO'
                 GROUP BY CAST(fecha_pedido AS DATE)
                 ORDER BY fecha ASC
-                """;
-
-        Map<LocalDate, BigDecimal> resultado =
-                new LinkedHashMap<>();
-
-        jdbcTemplate.query(sql, rs -> {
-            resultado.put(
-                    rs.getDate("fecha").toLocalDate(),
-                    rs.getBigDecimal("total_ventas")
-            );
-        });
-
-        return resultado;
+                """, "total_ventas");
     }
 
     @Override
     public Map<LocalDate, Integer> obtenerPedidosPorDia() {
-
-        String sql = """
+        return agruparEnteros("""
                 SELECT
                     CAST(fecha_pedido AS DATE) AS fecha,
                     COUNT(*) AS total_pedidos
                 FROM pedido
+                WHERE estado <> 'CANCELADO'
                 GROUP BY CAST(fecha_pedido AS DATE)
                 ORDER BY fecha ASC
-                """;
-
-        Map<LocalDate, Integer> resultado =
-                new LinkedHashMap<>();
-
-        jdbcTemplate.query(sql, rs -> {
-            resultado.put(
-                    rs.getDate("fecha").toLocalDate(),
-                    rs.getInt("total_pedidos")
-            );
-        });
-
-        return resultado;
+                """, "total_pedidos");
     }
 
     @Override
     public Map<LocalDate, Integer> obtenerEntregasPorDia() {
-
-        String sql = """
+        return agruparEnteros("""
                 SELECT
                     CAST(fecha_entrega AS DATE) AS fecha,
                     COUNT(*) AS total_entregas
@@ -80,26 +54,12 @@ public class EstadisticaRepository implements EstadisticaDAO {
                   AND fecha_entrega IS NOT NULL
                 GROUP BY CAST(fecha_entrega AS DATE)
                 ORDER BY fecha ASC
-                """;
-
-        Map<LocalDate, Integer> resultado =
-                new LinkedHashMap<>();
-
-        jdbcTemplate.query(sql, rs -> {
-            resultado.put(
-                    rs.getDate("fecha").toLocalDate(),
-                    rs.getInt("total_entregas")
-            );
-        });
-
-        return resultado;
+                """, "total_entregas");
     }
 
     @Override
-    public Map<LocalDate, BigDecimal>
-    obtenerTicketPromedioPorDia() {
-
-        String sql = """
+    public Map<LocalDate, BigDecimal> obtenerTicketPromedioPorDia() {
+        return agruparDecimales("""
                 SELECT
                     CAST(fecha_pedido AS DATE) AS fecha,
                     CAST(
@@ -107,101 +67,62 @@ public class EstadisticaRepository implements EstadisticaDAO {
                         AS DECIMAL(15, 2)
                     ) AS ticket_promedio
                 FROM pedido
+                WHERE estado <> 'CANCELADO'
                 GROUP BY CAST(fecha_pedido AS DATE)
                 ORDER BY fecha ASC
-                """;
-
-        Map<LocalDate, BigDecimal> resultado =
-                new LinkedHashMap<>();
-
-        jdbcTemplate.query(sql, rs -> {
-            resultado.put(
-                    rs.getDate("fecha").toLocalDate(),
-                    rs.getBigDecimal("ticket_promedio")
-            );
-        });
-
-        return resultado;
+                """, "ticket_promedio");
     }
 
     @Override
-    public Map<LocalDate, Integer>
-    obtenerUnidadesVendidasPorDia() {
-
-        String sql = """
+    public Map<LocalDate, Integer> obtenerUnidadesVendidasPorDia() {
+        return agruparEnteros("""
                 SELECT
                     CAST(p.fecha_pedido AS DATE) AS fecha,
                     SUM(d.cantidad) AS total_unidades
                 FROM pedido p
                 INNER JOIN detalle_pedido d
                     ON p.id_pedido = d.id_pedido
+                WHERE p.estado <> 'CANCELADO'
                 GROUP BY CAST(p.fecha_pedido AS DATE)
                 ORDER BY fecha ASC
-                """;
-
-        Map<LocalDate, Integer> resultado =
-                new LinkedHashMap<>();
-
-        jdbcTemplate.query(sql, rs -> {
-            resultado.put(
-                    rs.getDate("fecha").toLocalDate(),
-                    rs.getInt("total_unidades")
-            );
-        });
-
-        return resultado;
+                """, "total_unidades");
     }
 
     @Override
     public BigDecimal obtenerImporteTotal() {
-
         String sql = """
                 SELECT COALESCE(SUM(total), 0)
                 FROM pedido
+                WHERE estado <> 'CANCELADO'
                 """;
 
-        return jdbcTemplate.queryForObject(
-                sql,
-                BigDecimal.class
-        );
+        return jdbcTemplate.queryForObject(sql, BigDecimal.class);
     }
 
     @Override
     public int obtenerTotalPedidos() {
-
         String sql = """
                 SELECT COUNT(*)
                 FROM pedido
+                WHERE estado <> 'CANCELADO'
                 """;
 
-        Integer resultado = jdbcTemplate.queryForObject(
-                sql,
-                Integer.class
-        );
-
-        return resultado != null ? resultado : 0;
+        return jdbcTemplate.queryForObject(sql, Integer.class);
     }
 
     @Override
     public int obtenerTotalEntregados() {
-
         String sql = """
                 SELECT COUNT(*)
                 FROM pedido
                 WHERE estado = 'ENTREGADO'
                 """;
 
-        Integer resultado = jdbcTemplate.queryForObject(
-                sql,
-                Integer.class
-        );
-
-        return resultado != null ? resultado : 0;
+        return jdbcTemplate.queryForObject(sql, Integer.class);
     }
 
     @Override
     public BigDecimal obtenerTicketPromedioGeneral() {
-
         String sql = """
                 SELECT
                     COALESCE(
@@ -212,27 +133,47 @@ public class EstadisticaRepository implements EstadisticaDAO {
                         0
                     )
                 FROM pedido
+                WHERE estado <> 'CANCELADO'
                 """;
 
-        return jdbcTemplate.queryForObject(
-                sql,
-                BigDecimal.class
-        );
+        return jdbcTemplate.queryForObject(sql, BigDecimal.class);
     }
 
     @Override
     public int obtenerTotalUnidades() {
-
         String sql = """
-                SELECT COALESCE(SUM(cantidad), 0)
-                FROM detalle_pedido
+                SELECT COALESCE(SUM(d.cantidad), 0)
+                FROM detalle_pedido d
+                INNER JOIN pedido p ON p.id_pedido = d.id_pedido
+                WHERE p.estado <> 'CANCELADO'
                 """;
 
-        Integer resultado = jdbcTemplate.queryForObject(
-                sql,
-                Integer.class
-        );
+        return jdbcTemplate.queryForObject(sql, Integer.class);
+    }
 
-        return resultado != null ? resultado : 0;
+    private Map<LocalDate, BigDecimal> agruparDecimales(String sql, String columna) {
+        Map<LocalDate, BigDecimal> resultado = new LinkedHashMap<>();
+
+        jdbcTemplate.query(sql, rs -> {
+            resultado.put(
+                    rs.getDate("fecha").toLocalDate(),
+                    rs.getBigDecimal(columna)
+            );
+        });
+
+        return resultado;
+    }
+
+    private Map<LocalDate, Integer> agruparEnteros(String sql, String columna) {
+        Map<LocalDate, Integer> resultado = new LinkedHashMap<>();
+
+        jdbcTemplate.query(sql, rs -> {
+            resultado.put(
+                    rs.getDate("fecha").toLocalDate(),
+                    rs.getInt(columna)
+            );
+        });
+
+        return resultado;
     }
 }

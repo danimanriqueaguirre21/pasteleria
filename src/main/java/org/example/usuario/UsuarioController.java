@@ -12,16 +12,14 @@ import org.springframework.web.bind.annotation.*;
 public class UsuarioController {
 
     private final UsuarioService usuarioService;
-    private final UsuarioDAO usuarioDAO;
 
-    public UsuarioController(UsuarioService usuarioService, UsuarioDAO usuarioDAO) {
+    public UsuarioController(UsuarioService usuarioService) {
         this.usuarioService = usuarioService;
-        this.usuarioDAO = usuarioDAO;
     }
 
     @GetMapping("/registro")
     public String mostrarRegistro() {
-        return "usuario/registro";
+        return "usuario/crear-cuenta";
     }
 
     @PostMapping("/registrar")
@@ -45,7 +43,7 @@ public class UsuarioController {
 
         } catch (IllegalArgumentException e) {
             model.addAttribute("error", e.getMessage());
-            return "usuario/registro";
+            return "usuario/crear-cuenta";
         }
     }
 
@@ -58,7 +56,7 @@ public class UsuarioController {
             model.addAttribute("mensaje", "Registro exitoso. Ahora puedes iniciar sesión.");
         }
 
-        return "usuario/login";
+        return "usuario/iniciar-sesion";
     }
 
     @PostMapping("/login")
@@ -72,7 +70,7 @@ public class UsuarioController {
 
         if (usuario == null) {
             model.addAttribute("error", "Correo o contraseña incorrectos, o cuenta inactiva.");
-            return "usuario/login";
+            return "usuario/iniciar-sesion";
         }
 
         HttpSession sesionAnterior = request.getSession(false);
@@ -84,33 +82,42 @@ public class UsuarioController {
         HttpSession session = request.getSession(true);
         session.setAttribute("idUsuario", usuario.getIdUsuario());
         session.setAttribute("nombreUsuario", usuario.getNombres());
-        session.setAttribute("idRol", usuario.getIdRol());
+        session.setAttribute("rol", usuario.getRol());
 
-        int idRolAdministrador = usuarioDAO.obtenerIdRolPorNombre("ADMINISTRADOR");
-        int idRolCliente = usuarioDAO.obtenerIdRolPorNombre("CLIENTE");
-        int idRolCajero = usuarioDAO.obtenerIdRolPorNombre("CAJERO");
-        int idRolRepartidor = usuarioDAO.obtenerIdRolPorNombre("REPARTIDOR");
+        String panel = panelDeRol(usuario.getRol());
 
-        if (usuario.getIdRol() == idRolAdministrador) {
-            return "redirect:/admin/estadisticas";
-        }
-
-        if (usuario.getIdRol() == idRolCajero) {
-            return "redirect:/cajero/panel";
-        }
-
-        if (usuario.getIdRol() == idRolRepartidor) {
-            return "redirect:/repartidor/panel";
-        }
-
-        if (usuario.getIdRol() == idRolCliente) {
-            return "redirect:/catalogo";
+        if (panel != null) {
+            return panel;
         }
 
         session.invalidate();
         model.addAttribute("error", "Tu cuenta no tiene un rol válido.");
 
-        return "usuario/login";
+        return "usuario/iniciar-sesion";
+    }
+
+    private String panelDeRol(String rol) {
+        if (rol == null) {
+            return null;
+        }
+
+        if (rol.equals("ADMINISTRADOR")) {
+            return "redirect:/admin/estadisticas";
+        }
+
+        if (rol.equals("CAJERO")) {
+            return "redirect:/cajero/panel";
+        }
+
+        if (rol.equals("REPARTIDOR")) {
+            return "redirect:/repartidor/panel";
+        }
+
+        if (rol.equals("CLIENTE")) {
+            return "redirect:/catalogo";
+        }
+
+        return null;
     }
 
     @PostMapping("/logout")

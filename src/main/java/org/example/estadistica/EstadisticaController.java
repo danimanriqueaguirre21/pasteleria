@@ -5,10 +5,6 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 
-import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.util.Map;
-
 @Controller
 public class EstadisticaController {
 
@@ -23,61 +19,17 @@ public class EstadisticaController {
     @GetMapping("/admin/estadisticas")
     public String mostrarEstadisticas(Model model) {
 
-        Map<LocalDate, BigDecimal> ventasDiarias =
-                estadisticaService.obtenerVentasDiarias();
+        model.addAttribute("ventasDiarias", estadisticaService.obtenerVentasDiarias());
+        model.addAttribute("pedidosPorDia", estadisticaService.obtenerPedidosPorDia());
+        model.addAttribute("entregasPorDia", estadisticaService.obtenerEntregasPorDia());
+        model.addAttribute("ticketPromedioPorDia", estadisticaService.obtenerTicketPromedioPorDia());
+        model.addAttribute("unidadesVendidasPorDia", estadisticaService.obtenerUnidadesVendidasPorDia());
+        model.addAttribute("importeTotal", estadisticaService.obtenerImporteTotal());
+        model.addAttribute("totalPedidos", estadisticaService.obtenerTotalPedidos());
+        model.addAttribute("totalEntregados", estadisticaService.obtenerTotalEntregados());
+        model.addAttribute("ticketPromedioGeneral", estadisticaService.obtenerTicketPromedioGeneral());
+        model.addAttribute("totalUnidades", estadisticaService.obtenerTotalUnidades());
 
-        Map<LocalDate, Integer> pedidosPorDia =
-                estadisticaService.obtenerPedidosPorDia();
-
-        Map<LocalDate, Integer> entregasPorDia =
-                estadisticaService.obtenerEntregasPorDia();
-
-        Map<LocalDate, BigDecimal> ticketPromedioPorDia =
-                estadisticaService.obtenerTicketPromedioPorDia();
-
-        Map<LocalDate, Integer> unidadesVendidasPorDia =
-                estadisticaService.obtenerUnidadesVendidasPorDia();
-
-        model.addAttribute("ventasDiarias", ventasDiarias);
-        model.addAttribute("pedidosPorDia", pedidosPorDia);
-        model.addAttribute("entregasPorDia", entregasPorDia);
-
-        model.addAttribute(
-                "ticketPromedioPorDia",
-                ticketPromedioPorDia
-        );
-
-        model.addAttribute(
-                "unidadesVendidasPorDia",
-                unidadesVendidasPorDia
-        );
-
-        BigDecimal importeTotal =
-                estadisticaService.obtenerImporteTotal();
-
-        int totalPedidos =
-                estadisticaService.obtenerTotalPedidos();
-
-        int totalEntregados =
-                estadisticaService.obtenerTotalEntregados();
-
-        BigDecimal ticketPromedioGeneral =
-                estadisticaService.obtenerTicketPromedioGeneral();
-
-        int totalUnidades =
-                estadisticaService.obtenerTotalUnidades();
-
-        model.addAttribute("importeTotal", importeTotal);
-        model.addAttribute("totalPedidos", totalPedidos);
-        model.addAttribute("totalEntregados", totalEntregados);
-
-        model.addAttribute(
-                "ticketPromedioGeneral",
-                ticketPromedioGeneral
-        );
-
-        model.addAttribute("totalUnidades", totalUnidades);
-
-        return "admin/estadisticas";
+        return "admin/resumen-general";
     }
 }

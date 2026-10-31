@@ -52,12 +52,15 @@ public class RepartidorController {
         Map<String, Long> conteo = pedidoService.contarPorEstado(pedidos);
 
         model.addAttribute("pedidos", pedidos);
+        model.addAttribute(
+                "nombresClientes",
+                pedidoService.nombresDeClientes(pedidos));
         model.addAttribute("asignados", conteo.get("ASIGNADO"));
         model.addAttribute("enCamino", conteo.get("EN CAMINO"));
         model.addAttribute("entregados", conteo.get("ENTREGADO"));
         model.addAttribute("totalPedidos", pedidos.size());
 
-        return "repartidor/panel";
+        return "repartidor/mis-entregas";
     }
 
     @PostMapping("/iniciar-reparto")

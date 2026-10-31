@@ -13,6 +13,12 @@ public interface ProductoService {
 
     Producto obtenerProductoPorId(int id);
 
+    Producto obtenerProductoParaPedido(int id);
+
+    boolean descontarStock(int idProducto, int cantidad);
+
+    int aumentarStock(int idProducto, int cantidad);
+
     void crearProducto(Producto producto);
 
     void actualizarProducto(Producto producto);

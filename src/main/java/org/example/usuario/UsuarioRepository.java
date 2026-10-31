@@ -5,6 +5,8 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 @Repository
@@ -23,12 +25,12 @@ public class UsuarioRepository implements UsuarioDAO {
             rs.getString("correo"),
             rs.getString("contrasena"),
             rs.getBoolean("estado"),
-            rs.getInt("id_rol")
+            rs.getString("rol")
     );
 
     @Override
     public void registrarUsuario(Usuario usuario) {
-        String sql = "INSERT INTO usuario (nombres, apellidos, correo, contrasena, estado, id_rol) VALUES (?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO usuario (nombres, apellidos, correo, contrasena, estado, rol) VALUES (?, ?, ?, ?, ?, ?)";
 
         jdbcTemplate.update(sql,
                 usuario.getNombres(),
@@ -36,7 +38,7 @@ public class UsuarioRepository implements UsuarioDAO {
                 usuario.getCorreo(),
                 usuario.getContrasena(),
                 usuario.isEstado(),
-                usuario.getIdRol());
+                usuario.getRol());
     }
 
     @Override
@@ -54,9 +56,20 @@ public class UsuarioRepository implements UsuarioDAO {
     }
 
     @Override
-    public int obtenerIdRolPorNombre(String nombre) {
-        String sql = "SELECT id_rol FROM rol WHERE nombre = ?";
-        return jdbcTemplate.queryForObject(sql, Integer.class, nombre);
+    public List<Usuario> listarPorIds(Collection<Integer> ids) {
+        if (ids == null || ids.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        String marcadores = "?";
+
+        for (int i = 1; i < ids.size(); i++) {
+            marcadores = marcadores + ",?";
+        }
+
+        String sql = "SELECT * FROM usuario WHERE id_usuario IN (" + marcadores + ")";
+
+        return jdbcTemplate.query(sql, usuarioRowMapper, ids.toArray());
     }
 
     @Override
@@ -66,15 +79,9 @@ public class UsuarioRepository implements UsuarioDAO {
     }
 
     @Override
-    public List<Usuario> listarUsuariosPorRol(int idRol) {
-        String sql = "SELECT * FROM usuario WHERE id_rol = ? ORDER BY id_usuario DESC";
-        return jdbcTemplate.query(sql, usuarioRowMapper, idRol);
-    }
-
-    @Override
-    public void actualizarRol(int idUsuario, int idRol) {
-        String sql = "UPDATE usuario SET id_rol = ? WHERE id_usuario = ?";
-        jdbcTemplate.update(sql, idRol, idUsuario);
+    public List<Usuario> listarUsuariosPorRol(String rol) {
+        String sql = "SELECT * FROM usuario WHERE rol = ? ORDER BY id_usuario DESC";
+        return jdbcTemplate.query(sql, usuarioRowMapper, rol);
     }
 
     @Override

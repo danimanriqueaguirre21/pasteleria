@@ -9,20 +9,20 @@ public class Usuario {
     private String correo;
     private String contrasena;
     private boolean estado;
-    private Integer idRol;
+    private String rol;
 
     public Usuario() {
     }
 
     public Usuario(Integer idUsuario, String nombres, String apellidos,
-                   String correo, String contrasena, boolean estado, Integer idRol) {
+                   String correo, String contrasena, boolean estado, String rol) {
         this.idUsuario = idUsuario;
         this.nombres = nombres;
         this.apellidos = apellidos;
         this.correo = correo;
         this.contrasena = contrasena;
         this.estado = estado;
-        this.idRol = idRol;
+        this.rol = rol;
     }
 
     public Integer getIdUsuario() {
@@ -73,11 +73,11 @@ public class Usuario {
         this.estado = estado;
     }
 
-    public Integer getIdRol() {
-        return idRol;
+    public String getRol() {
+        return rol;
     }
 
-    public void setIdRol(Integer idRol) {
-        this.idRol = idRol;
+    public void setRol(String rol) {
+        this.rol = rol;
     }
 }

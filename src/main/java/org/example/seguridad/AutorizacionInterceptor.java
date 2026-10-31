@@ -5,7 +5,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import org.example.usuario.Usuario;
-import org.example.usuario.UsuarioDAO;
 import org.example.usuario.UsuarioService;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
@@ -14,14 +13,9 @@ import org.springframework.web.servlet.HandlerInterceptor;
 public class AutorizacionInterceptor implements HandlerInterceptor {
 
     private final UsuarioService usuarioService;
-    private final UsuarioDAO usuarioDAO;
 
-    public AutorizacionInterceptor(
-            UsuarioService usuarioService,
-            UsuarioDAO usuarioDAO) {
-
+    public AutorizacionInterceptor(UsuarioService usuarioService) {
         this.usuarioService = usuarioService;
-        this.usuarioDAO = usuarioDAO;
     }
 
     @Override
@@ -59,10 +53,7 @@ public class AutorizacionInterceptor implements HandlerInterceptor {
             return false;
         }
 
-        int idAdministrador =
-                usuarioDAO.obtenerIdRolPorNombre("ADMINISTRADOR");
-
-        if (!usuario.getIdRol().equals(idAdministrador)) {
+        if (!"ADMINISTRADOR".equals(usuario.getRol())) {
 
             response.sendError(
                     HttpServletResponse.SC_FORBIDDEN,

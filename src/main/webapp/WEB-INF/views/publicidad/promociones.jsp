@@ -24,19 +24,19 @@
             Mi Pastelería
 
             <c:choose>
-                <c:when test="${sessionScope.idRol eq 1}">
+                <c:when test="${sessionScope.rol eq 'ADMINISTRADOR'}">
                     <span class="rol">Administrador</span>
                 </c:when>
 
-                <c:when test="${sessionScope.idRol eq 2}">
+                <c:when test="${sessionScope.rol eq 'CLIENTE'}">
                     <span class="rol">Cliente</span>
                 </c:when>
 
-                <c:when test="${sessionScope.idRol eq 3}">
+                <c:when test="${sessionScope.rol eq 'CAJERO'}">
                     <span class="rol">Cajero</span>
                 </c:when>
 
-                <c:when test="${sessionScope.idRol eq 4}">
+                <c:when test="${sessionScope.rol eq 'REPARTIDOR'}">
                     <span class="rol">Repartidor</span>
                 </c:when>
             </c:choose>
@@ -77,7 +77,7 @@
         </c:if>
 
         
-        <c:if test="${sessionScope.idRol eq 1}">
+        <c:if test="${sessionScope.rol eq 'ADMINISTRADOR'}">
             <details class="menu-administracion">
                 <summary>
                     ⚙ Administración
@@ -91,14 +91,6 @@
 
                     <a href="${pageContext.request.contextPath}/categorias">
                         Administrar categorías
-                    </a>
-
-                    <a href="${pageContext.request.contextPath}/admin/promociones">
-                        Administrar promociones
-                    </a>
-
-                    <a href="${pageContext.request.contextPath}/admin/mensajes">
-                        Mensajes de contacto
                     </a>
 
                     <a href="${pageContext.request.contextPath}/admin/pedidos">
@@ -117,14 +109,14 @@
         </c:if>
 
         
-        <c:if test="${sessionScope.idRol eq 3}">
+        <c:if test="${sessionScope.rol eq 'CAJERO'}">
             <a href="${pageContext.request.contextPath}/cajero/panel">
                 Panel del cajero
             </a>
         </c:if>
 
         
-        <c:if test="${sessionScope.idRol eq 4}">
+        <c:if test="${sessionScope.rol eq 'REPARTIDOR'}">
             <a href="${pageContext.request.contextPath}/repartidor/panel">
                 Panel del repartidor
             </a>
@@ -173,50 +165,48 @@
 
 <main class="contenido-publicidad">
 
-    <section class="presentacion-publicidad">
-        <h2>Nuestras promociones</h2>
-
-        <p>
-            Mira las ofertas de la semana y elige tu favorita en el catálogo.
-        </p>
+    <section class="aviso-principal">
+        <img src="${pageContext.request.contextPath}/imagenes/promo-pasteleria.jpg"
+             alt="Torta decorada para una celebración">
+        <div class="aviso-texto">
+            <span class="etiqueta-oferta">Esta semana</span>
+            <h2>Tortas para tu celebración</h2>
+            <p>Pide con anticipación y recógela en tienda. Cada torta se prepara el mismo día.</p>
+            <a class="boton-publicidad" href="${pageContext.request.contextPath}/catalogo">Ver el catálogo</a>
+        </div>
     </section>
 
-    <c:choose>
-        <c:when test="${empty promociones}">
-            <p class="sin-promociones">Por ahora no hay promociones activas.</p>
-        </c:when>
-        <c:otherwise>
-            <section class="lista-promociones" aria-label="Promociones activas">
-                <c:forEach var="promocion" items="${promociones}">
-                    <article class="tarjeta-promocion">
-                        <c:choose>
-                            <c:when test="${not empty promocion.imagen}">
-                                <c:url var="rutaImagen" value="/imagenes/${promocion.imagen}"/>
-                                <img src="${rutaImagen}"
-                                     alt="<c:out value='${promocion.titulo}'/>">
-                            </c:when>
-                            <c:otherwise>
-                                <img src="${pageContext.request.contextPath}/imagenes/sin-imagen.jpg"
-                                     alt="Promoción sin imagen">
-                            </c:otherwise>
-                        </c:choose>
+    <section class="rejilla-ofertas" aria-label="Ofertas de la pastelería">
+        <article class="oferta-fija">
+            <img src="${pageContext.request.contextPath}/imagenes/torta-chocolate.jpg"
+                 alt="Torta de chocolate">
+            <div class="texto-promocion">
+                <span class="etiqueta-oferta">Torta</span>
+                <h3>Chocolate</h3>
+                <p>Cubierta de chocolate, para cumpleaños y reuniones.</p>
+            </div>
+        </article>
 
-                        <div class="texto-promocion">
-                            <h3><c:out value="${promocion.titulo}"/></h3>
-                            <p><c:out value="${promocion.descripcion}"/></p>
-                        </div>
-                    </article>
-                </c:forEach>
-            </section>
-        </c:otherwise>
-    </c:choose>
+        <article class="oferta-fija">
+            <img src="${pageContext.request.contextPath}/imagenes/cupcake-fresa.jpg"
+                 alt="Cupcakes de fresa">
+            <div class="texto-promocion">
+                <span class="etiqueta-oferta">Para compartir</span>
+                <h3>Cupcakes de fresa</h3>
+                <p>Caja lista para llevar a una reunión.</p>
+            </div>
+        </article>
 
-    <div class="accion-publicidad">
-        <a class="boton-publicidad"
-           href="${pageContext.request.contextPath}/catalogo">
-            Ver nuestros productos
-        </a>
-    </div>
+        <article class="oferta-fija">
+            <img src="${pageContext.request.contextPath}/imagenes/galleta.jpg"
+                 alt="Galletas de mantequilla">
+            <div class="texto-promocion">
+                <span class="etiqueta-oferta">Detalle</span>
+                <h3>Galletas de mantequilla</h3>
+                <p>Para acompañar el café o regalar.</p>
+            </div>
+        </article>
+    </section>
 
 </main>
 

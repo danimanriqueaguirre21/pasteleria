@@ -11,6 +11,10 @@ public interface RepartidorDAO {
 
     List<Pedido> listarPedidosPorRepartidor(int idRepartidor);
 
+    int contarPedidosEnCamino(int idRepartidor);
+
+    int asignarRepartidor(int idPedido, int idRepartidor);
+
     int iniciarReparto(int idPedido, int idRepartidor);
 
     int confirmarEntrega(int idPedido, int idRepartidor);

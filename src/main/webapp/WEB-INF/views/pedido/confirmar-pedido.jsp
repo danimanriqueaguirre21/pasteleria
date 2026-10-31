@@ -23,13 +23,13 @@
                 <c:when test="${esAdministrador}">
                     <span class="rol">Administrador</span>
                 </c:when>
-                <c:when test="${sessionScope.idRol eq 2}">
+                <c:when test="${sessionScope.rol eq 'CLIENTE'}">
                     <span class="rol">Cliente</span>
                 </c:when>
-                <c:when test="${sessionScope.idRol eq 3}">
+                <c:when test="${sessionScope.rol eq 'CAJERO'}">
                     <span class="rol">Cajero</span>
                 </c:when>
-                <c:when test="${sessionScope.idRol eq 4}">
+                <c:when test="${sessionScope.rol eq 'REPARTIDOR'}">
                     <span class="rol">Repartidor</span>
                 </c:when>
             </c:choose>
@@ -52,14 +52,14 @@
         </a>
 
         <c:if test="${empty sessionScope.idUsuario
-                      or sessionScope.idRol eq 2}">
+                      or sessionScope.rol eq 'CLIENTE'}">
             <a href="${pageContext.request.contextPath}/carrito">
                 Carrito
             </a>
         </c:if>
 
         <c:if test="${not empty sessionScope.idUsuario
-                      and sessionScope.idRol eq 2}">
+                      and sessionScope.rol eq 'CLIENTE'}">
             <a href="${pageContext.request.contextPath}/pedido/historial">
                 Mis pedidos
             </a>
@@ -83,13 +83,6 @@
                         Administrar categorías
                     </a>
 
-                    <a href="${pageContext.request.contextPath}/admin/promociones">
-                        Administrar promociones
-                    </a>
-
-                    <a href="${pageContext.request.contextPath}/admin/mensajes">
-                        Mensajes de contacto
-                    </a>
                     <a href="${pageContext.request.contextPath}/admin/pedidos">
                         Gestionar pedidos
                     </a>
@@ -104,14 +97,14 @@
         </c:if>
 
         <c:if test="${not empty sessionScope.idUsuario
-                      and sessionScope.idRol eq 3}">
+                      and sessionScope.rol eq 'CAJERO'}">
             <a href="${pageContext.request.contextPath}/cajero/panel">
                 Panel del cajero
             </a>
         </c:if>
 
         <c:if test="${not empty sessionScope.idUsuario
-                      and sessionScope.idRol eq 4}">
+                      and sessionScope.rol eq 'REPARTIDOR'}">
             <a href="${pageContext.request.contextPath}/repartidor/panel">
                 Panel del repartidor
             </a>

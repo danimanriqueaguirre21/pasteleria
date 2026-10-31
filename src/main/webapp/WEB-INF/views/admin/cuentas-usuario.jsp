@@ -78,10 +78,10 @@
                         <td><c:out value="${usuario.correo}"/></td>
                         <td>
                             <c:choose>
-                                <c:when test="${usuario.idRol == idRolAdministrador}">Administrador</c:when>
-                                <c:when test="${usuario.idRol == idRolCliente}">Cliente</c:when>
-                                <c:when test="${usuario.idRol == idRolCajero}">Cajero</c:when>
-                                <c:when test="${usuario.idRol == idRolRepartidor}">Repartidor</c:when>
+                                <c:when test="${usuario.rol eq 'ADMINISTRADOR'}">Administrador</c:when>
+                                <c:when test="${usuario.rol eq 'CLIENTE'}">Cliente</c:when>
+                                <c:when test="${usuario.rol eq 'CAJERO'}">Cajero</c:when>
+                                <c:when test="${usuario.rol eq 'REPARTIDOR'}">Repartidor</c:when>
                                 <c:otherwise>Desconocido</c:otherwise>
                             </c:choose>
                         </td>
@@ -93,7 +93,7 @@
                         </td>
                         <td>
                             <c:choose>
-                                <c:when test="${usuario.idRol == idRolAdministrador}"><span class="protegido">Protegido</span></c:when>
+                                <c:when test="${usuario.rol eq 'ADMINISTRADOR'}"><span class="protegido">Protegido</span></c:when>
                                 <c:otherwise>
                                     <form method="post" action="${pageContext.request.contextPath}/admin/usuarios/estado">
                                         <input type="hidden" name="idUsuario" value="${usuario.idUsuario}">

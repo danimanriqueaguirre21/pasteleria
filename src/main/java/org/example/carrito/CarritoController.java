@@ -39,7 +39,7 @@ public class CarritoController {
         model.addAttribute("carrito", carrito);
         model.addAttribute("total", carritoService.calcularTotal(carrito));
 
-        return "carrito/carrito";
+        return "carrito/mi-carrito";
     }
 
     @PostMapping("/agregar")

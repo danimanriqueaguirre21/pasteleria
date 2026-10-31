@@ -13,10 +13,6 @@
             Categor&iacute;as
         </a>
 
-        <a href="${pageContext.request.contextPath}/admin/promociones"<c:if test="${menuActivo eq 'promociones'}"> aria-current="page"</c:if>>
-            Promociones
-        </a>
-
         <a href="${pageContext.request.contextPath}/admin/pedidos"<c:if test="${menuActivo eq 'pedidos'}"> aria-current="page"</c:if>>
             Pedidos
         </a>
@@ -27,10 +23,6 @@
 
         <a href="${pageContext.request.contextPath}/admin/usuarios"<c:if test="${menuActivo eq 'usuarios'}"> aria-current="page"</c:if>>
             Usuarios
-        </a>
-
-        <a href="${pageContext.request.contextPath}/admin/mensajes"<c:if test="${menuActivo eq 'mensajes'}"> aria-current="page"</c:if>>
-            Mensajes
         </a>
 
         <form action="${pageContext.request.contextPath}/usuario/logout" method="post">

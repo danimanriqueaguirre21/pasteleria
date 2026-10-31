@@ -37,6 +37,6 @@ public class CatalogoController {
         model.addAttribute("idCategoriaSeleccionada", categoria);
         model.addAttribute("disponibles", disponibles);
 
-        return "catalogo/catalogo";
+        return "catalogo/nuestro-catalogo";
     }
 }

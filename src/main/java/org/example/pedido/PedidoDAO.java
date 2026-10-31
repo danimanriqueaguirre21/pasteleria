@@ -23,8 +23,6 @@ public interface PedidoDAO {
 
     String obtenerEstadoBloqueado(int idPedido);
 
-    int asignarRepartidor(int idPedido, int idRepartidor);
-
     Pedido obtenerPedidoPorCodigoSeguimiento(String codigoSeguimiento);
 
     Pedido obtenerDatosCancelacionBloqueado(int idPedido);

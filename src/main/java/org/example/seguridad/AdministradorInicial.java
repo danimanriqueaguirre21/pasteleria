@@ -1,21 +1,19 @@
-
 package org.example.seguridad;
 
 import org.example.usuario.Usuario;
-import org.example.usuario.UsuarioDAO;
+import org.example.usuario.UsuarioService;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Profile;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Component;
 
 @Component
 @Profile("crear-admin")
 public class AdministradorInicial implements CommandLineRunner {
 
-    private final UsuarioDAO usuarioDAO;
+    private final UsuarioService usuarioService;
 
-    public AdministradorInicial(UsuarioDAO usuarioDAO) {
-        this.usuarioDAO = usuarioDAO;
+    public AdministradorInicial(UsuarioService usuarioService) {
+        this.usuarioService = usuarioService;
     }
 
     @Override
@@ -23,7 +21,7 @@ public class AdministradorInicial implements CommandLineRunner {
 
         String correo = "admin@pasteleria.com";
 
-        if (usuarioDAO.buscarPorCorreo(correo) != null) {
+        if (usuarioService.existeCorreo(correo)) {
             System.out.println("El administrador ya existe.");
             return;
         }
@@ -37,26 +35,15 @@ public class AdministradorInicial implements CommandLineRunner {
             );
         }
 
-        BCryptPasswordEncoder encoder =
-                new BCryptPasswordEncoder();
-
         Usuario administrador = new Usuario();
 
         administrador.setNombres("Administrador");
         administrador.setApellidos("Pastelería");
         administrador.setCorreo(correo);
-        administrador.setContrasena(encoder.encode(contrasena));
-        administrador.setEstado(true);
+        administrador.setContrasena(contrasena);
 
-        int idRol = usuarioDAO.obtenerIdRolPorNombre(
-                "ADMINISTRADOR"
-        );
-
-        administrador.setIdRol(idRol);
-
-        usuarioDAO.registrarUsuario(administrador);
+        usuarioService.registrarAdministrador(administrador);
 
         System.out.println("Administrador creado correctamente.");
     }
 }
-
