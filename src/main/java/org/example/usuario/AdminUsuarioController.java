@@ -6,6 +6,8 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.util.Locale;
+
 @Controller
 @RequestMapping("/admin/usuarios")
 public class AdminUsuarioController {
@@ -17,8 +19,19 @@ public class AdminUsuarioController {
     }
 
     @GetMapping
-    public String listarUsuarios(Model model) {
-        model.addAttribute("usuarios", usuarioService.listarUsuarios());
+    public String listarUsuarios(
+            @RequestParam(required = false) String rol,
+            Model model) {
+
+        String rolFiltro = rolValido(rol);
+
+        if (rolFiltro == null) {
+            model.addAttribute("usuarios", usuarioService.listarUsuarios());
+        } else {
+            model.addAttribute("usuarios", usuarioService.listarUsuariosPorRol(rolFiltro));
+        }
+
+        model.addAttribute("rolFiltro", rolFiltro == null ? "" : rolFiltro);
 
         return "admin/cuentas-usuario";
     }
@@ -54,6 +67,7 @@ public class AdminUsuarioController {
     public String actualizarEstado(
             @RequestParam int idUsuario,
             @RequestParam boolean estado,
+            @RequestParam(required = false) String rol,
             RedirectAttributes redirectAttributes) {
 
         try {
@@ -69,6 +83,33 @@ public class AdminUsuarioController {
             redirectAttributes.addFlashAttribute("error", e.getMessage());
         }
 
-        return "redirect:/admin/usuarios";
+        return redirectUsuarios(rol);
+    }
+
+    private String redirectUsuarios(String rol) {
+        String rolFiltro = rolValido(rol);
+
+        if (rolFiltro == null) {
+            return "redirect:/admin/usuarios#usuarios-registrados";
+        }
+
+        return "redirect:/admin/usuarios?rol=" + rolFiltro + "#usuarios-registrados";
+    }
+
+    private String rolValido(String rol) {
+        if (rol == null || rol.isBlank()) {
+            return null;
+        }
+
+        String normalizado = rol.trim().toUpperCase(Locale.ROOT);
+
+        if (normalizado.equals("ADMINISTRADOR")
+                || normalizado.equals("CLIENTE")
+                || normalizado.equals("CAJERO")
+                || normalizado.equals("REPARTIDOR")) {
+            return normalizado;
+        }
+
+        return null;
     }
 }

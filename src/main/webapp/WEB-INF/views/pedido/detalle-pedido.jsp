@@ -21,11 +21,128 @@
         <p>Detalle de tu compra</p>
     </div>
 
-    <nav class="menu" aria-label="Navegación principal">
-        <a href="${pageContext.request.contextPath}/catalogo">Inicio</a>
-        <a class="activo" href="${pageContext.request.contextPath}/pedido/historial">
-            Mis pedidos
+    <nav class="menu" aria-label="Menú principal">
+
+        <a href="${pageContext.request.contextPath}/catalogo">
+            Catálogo
         </a>
+
+        <a href="${pageContext.request.contextPath}/publicidad">
+            Promociones
+        </a>
+
+        <a href="${pageContext.request.contextPath}/contacto">
+            Contacto
+        </a>
+
+        <a href="${pageContext.request.contextPath}/carrito">
+            Carrito
+        </a>
+
+        <c:if test="${not empty sessionScope.idUsuario}">
+
+            <a class="activo"
+               aria-current="page"
+               href="${pageContext.request.contextPath}/pedido/historial">
+                Mis pedidos
+            </a>
+
+            <a href="${pageContext.request.contextPath}/pedido/seguimiento">
+                Seguimiento
+            </a>
+
+        </c:if>
+
+        <c:if test="${esAdministrador}">
+            <details class="menu-administracion">
+
+                <summary>
+                    ⚙ Administración
+                    <span aria-hidden="true">▾</span>
+                </summary>
+
+                <div class="menu-administracion-opciones">
+
+                    <a href="${pageContext.request.contextPath}/productos">
+                        Administrar productos
+                    </a>
+
+                    <a href="${pageContext.request.contextPath}/categorias">
+                        Administrar categorías
+                    </a>
+
+                    <a href="${pageContext.request.contextPath}/admin/pedidos">
+                        Gestionar pedidos
+                    </a>
+
+                    <a href="${pageContext.request.contextPath}/admin/usuarios">
+                        Gestionar usuarios
+                    </a>
+
+                    <a href="${pageContext.request.contextPath}/admin/estadisticas">
+                        Resumen
+                    </a>
+
+                </div>
+            </details>
+        </c:if>
+
+        <c:if test="${not empty sessionScope.idUsuario and sessionScope.rol eq 'CAJERO'}">
+
+            <a href="${pageContext.request.contextPath}/cajero/panel">
+                Panel del cajero
+            </a>
+
+        </c:if>
+
+        <c:if test="${not empty sessionScope.idUsuario and sessionScope.rol eq 'REPARTIDOR'}">
+
+            <a href="${pageContext.request.contextPath}/repartidor/panel">
+                Panel del repartidor
+            </a>
+
+        </c:if>
+
+        <c:choose>
+
+            <c:when test="${not empty sessionScope.idUsuario}">
+
+                <span class="nombre-usuario">
+                    Hola,
+                    <c:out value="${sessionScope.nombreUsuario}"/>
+                </span>
+
+                <form action="${pageContext.request.contextPath}/usuario/logout"
+                      method="post">
+
+                    <c:if test="${not empty _csrf}">
+                        <input type="hidden"
+                               name="${_csrf.parameterName}"
+                               value="${_csrf.token}">
+                    </c:if>
+
+                    <button type="submit">
+                        Cerrar sesión
+                    </button>
+
+                </form>
+            </c:when>
+
+            <c:otherwise>
+
+                <a href="${pageContext.request.contextPath}/usuario/login">
+                    Iniciar sesión
+                </a>
+
+                <a class="salir"
+                   href="${pageContext.request.contextPath}/usuario/registro">
+                    Registrarse
+                </a>
+
+            </c:otherwise>
+
+        </c:choose>
+
     </nav>
 </header>
 
@@ -33,7 +150,7 @@
 
     <div class="titulo-seccion">
         <h2>
-            Detalle del pedido #<c:out value="${pedido.idPedido}"/>
+            Detalle del pedido
         </h2>
 
         <p>Consulta la información y los productos de tu compra.</p>
@@ -48,7 +165,7 @@
 
             <p>
                 <strong>Fecha:</strong>
-                <c:out value="${pedido.fechaPedido}"/>
+                <c:out value="${pedido.fechaPedidoTexto}"/>
             </p>
 
             <p>

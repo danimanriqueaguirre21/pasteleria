@@ -27,6 +27,31 @@ CREATE TABLE IF NOT EXISTS producto (
     CHECK (stock >= 0)
 );
 
+-- El nombre no se repite aunque cambie mayúsculas o espacios.
+-- La copia inactiva de la carga inicial no tiene foto ni ventas.
+DELETE FROM producto
+WHERE estado = FALSE
+  AND imagen IS NULL
+  AND id_producto NOT IN (SELECT id_producto FROM detalle_pedido)
+  AND LOWER(TRIM(nombre)) IN (
+        SELECT LOWER(TRIM(nombre))
+        FROM producto
+        GROUP BY LOWER(TRIM(nombre))
+        HAVING COUNT(*) > 1
+  );
+
+ALTER TABLE categoria ADD COLUMN IF NOT EXISTS nombre_clave VARCHAR(100)
+    GENERATED ALWAYS AS (LOWER(TRIM(nombre)));
+
+ALTER TABLE producto ADD COLUMN IF NOT EXISTS nombre_clave VARCHAR(100)
+    GENERATED ALWAYS AS (LOWER(TRIM(nombre)));
+
+CREATE UNIQUE INDEX IF NOT EXISTS uk_categoria_nombre
+ON categoria (nombre_clave);
+
+CREATE UNIQUE INDEX IF NOT EXISTS uk_producto_nombre
+ON producto (nombre_clave);
+
 
 -- El rol no es una tabla: es un atributo del usuario.
 -- ADMINISTRADOR, CLIENTE, CAJERO y REPARTIDOR son valores fijos, sin CRUD.
@@ -42,6 +67,42 @@ CREATE TABLE IF NOT EXISTS usuario (
     CONSTRAINT chk_usuario_rol
     CHECK (rol IN ('ADMINISTRADOR', 'CLIENTE', 'CAJERO', 'REPARTIDOR'))
 );
+
+-- La base antigua tenia id_rol y una tabla rol. Se copia el nombre y se retira esa tabla.
+CREATE ALIAS IF NOT EXISTS MIGRAR_ROL_USUARIO AS '
+void migrar(java.sql.Connection conn) throws java.sql.SQLException {
+    java.sql.Statement st = conn.createStatement();
+    java.sql.ResultSet rs = st.executeQuery(
+        "SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = ''USUARIO'' AND COLUMN_NAME = ''ID_ROL''");
+    rs.next();
+    boolean tieneIdRol = rs.getInt(1) > 0;
+    rs.close();
+    if (tieneIdRol) {
+        st.execute("ALTER TABLE usuario ADD COLUMN IF NOT EXISTS rol VARCHAR(50)");
+        st.execute("UPDATE usuario SET rol = (SELECT nombre FROM rol WHERE rol.id_rol = usuario.id_rol) WHERE rol IS NULL");
+        st.execute("UPDATE usuario SET rol = ''CLIENTE'' WHERE rol IS NULL");
+        st.execute("ALTER TABLE usuario DROP CONSTRAINT IF EXISTS fk_usuario_rol");
+        st.execute("ALTER TABLE usuario DROP COLUMN IF EXISTS id_rol");
+        st.execute("ALTER TABLE usuario ALTER COLUMN rol SET NOT NULL");
+        st.execute("ALTER TABLE usuario ADD CONSTRAINT IF NOT EXISTS chk_usuario_rol CHECK (rol IN (''ADMINISTRADOR'', ''CLIENTE'', ''CAJERO'', ''REPARTIDOR''))");
+        st.execute("DROP TABLE IF EXISTS rol");
+    }
+    st.close();
+}
+';
+CALL MIGRAR_ROL_USUARIO();
+DROP ALIAS IF EXISTS MIGRAR_ROL_USUARIO;
+
+UPDATE usuario
+SET contrasena = '12345678'
+WHERE correo IN (
+    'admin@pasteleria.com',
+    'cliente@pasteleria.com',
+    'cajero@pasteleria.com',
+    'repartidor@pasteleria.com',
+    'mostrador@pasteleria.com'
+)
+AND contrasena LIKE '$2%';
 
 -- TABLA PEDIDO
 CREATE TABLE IF NOT EXISTS pedido (

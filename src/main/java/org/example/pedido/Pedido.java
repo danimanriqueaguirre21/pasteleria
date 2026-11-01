@@ -3,8 +3,12 @@ package org.example.pedido;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 public class Pedido {
+
+    private static final DateTimeFormatter FECHA_VISIBLE =
+            DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
 
     private Integer idPedido;
     private Integer idUsuario;
@@ -61,6 +65,13 @@ public class Pedido {
 
     public void setFechaPedido(LocalDateTime fechaPedido) {
         this.fechaPedido = fechaPedido;
+    }
+
+    public String getFechaPedidoTexto() {
+        if (fechaPedido == null) {
+            return "";
+        }
+        return fechaPedido.format(FECHA_VISIBLE);
     }
 
     public LocalDateTime getFechaEntrega() {

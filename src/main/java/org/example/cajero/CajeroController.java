@@ -9,10 +9,15 @@ import org.example.usuario.UsuarioService;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.example.usuario.Usuario;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 @Controller
 @RequestMapping("/cajero")
@@ -47,12 +52,24 @@ public class CajeroController {
 
         model.addAttribute("bloques", bloques);
         model.addAttribute("nombresClientes", pedidoService.nombresDeClientes(pedidos));
+        model.addAttribute("nombresRepartidores", nombresRepartidores(pedidos));
         model.addAttribute("pendientes", conteo.get("RECIBIDO"));
         model.addAttribute("enPreparacion", conteo.get("EN PREPARACIÓN"));
         model.addAttribute("asignados", conteo.get("ASIGNADO"));
         model.addAttribute("enCamino", conteo.get("EN CAMINO"));
         model.addAttribute("entregados", conteo.get("ENTREGADO"));
-        model.addAttribute("repartidores", usuarioService.listarActivosPorRol("REPARTIDOR"));
+        List<Usuario> repartidoresActivos = usuarioService.listarActivosPorRol("REPARTIDOR");
+        Set<Integer> ocupados = new HashSet<>(repartidorService.listarIdsConPedidoPendiente());
+        List<Usuario> repartidoresLibres = new ArrayList<>();
+
+        for (Usuario repartidor : repartidoresActivos) {
+            if (!ocupados.contains(repartidor.getIdUsuario())) {
+                repartidoresLibres.add(repartidor);
+            }
+        }
+
+        model.addAttribute("repartidores", repartidoresLibres);
+        model.addAttribute("hayRepartidoresOcupados", repartidoresActivos.size() > repartidoresLibres.size());
         model.addAttribute("productos", productoService.listarProductosActivos());
 
         return "cajero/punto-de-venta";
@@ -105,7 +122,7 @@ public class CajeroController {
             pedidoService.actualizarEstadoPedido(idPedido, nuevoEstado);
             redirectAttributes.addFlashAttribute(
                     "mensaje",
-                    "El pedido #" + idPedido + " se actualizó a " + nuevoEstado
+                    "El pedido #" + idPedido + " se actualizó a " + textoEstado(nuevoEstado)
             );
         } catch (IllegalArgumentException | IllegalStateException e) {
             redirectAttributes.addFlashAttribute("error", e.getMessage());
@@ -136,6 +153,35 @@ public class CajeroController {
         }
 
         return "redirect:/cajero/panel";
+    }
+
+    private Map<Integer, String> nombresRepartidores(List<Pedido> pedidos) {
+        Set<Integer> ids = new HashSet<>();
+
+        for (Pedido pedido : pedidos) {
+            if (pedido.getIdRepartidor() != null) {
+                ids.add(pedido.getIdRepartidor());
+            }
+        }
+
+        Map<Integer, String> nombres = new HashMap<>();
+
+        for (Usuario repartidor : usuarioService.buscarPorIds(ids)) {
+            nombres.put(
+                    repartidor.getIdUsuario(),
+                    repartidor.getNombres() + " " + repartidor.getApellidos()
+            );
+        }
+
+        return nombres;
+    }
+
+    private String textoEstado(String estado) {
+        if ("EN PREPARACIÓN".equals(estado)) {
+            return "empaquetar";
+        }
+
+        return estado;
     }
 
     private boolean esCajero(HttpSession session) {

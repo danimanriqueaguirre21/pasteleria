@@ -52,6 +52,8 @@ public class WebConfig implements WebMvcConfigurer {
 
         registry.addInterceptor(sesionInterceptor)
                 .addPathPatterns(
+                        "/carrito",
+                        "/carrito/**",
                         "/pedido",
                         "/pedido/**"
                 );

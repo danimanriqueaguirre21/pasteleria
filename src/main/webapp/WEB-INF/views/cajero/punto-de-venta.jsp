@@ -53,10 +53,6 @@
 
     <section class="titulo-seccion">
         <h2>Panel del Cajero</h2>
-        <p>
-            Gestiona los pedidos de Mi Pastelería,
-            supervisa su preparación y asigna repartidores.
-        </p>
     </section>
 
     
@@ -75,10 +71,6 @@
 
     <section class="panel venta-tienda">
         <h2>Venta en tienda</h2>
-        <p class="descripcion-panel">
-            Agrega uno o varios productos. Si el cliente al final lleva menos,
-            cambia la cantidad o pulsa Quitar. Solo se cobra lo que queda en Esta venta.
-        </p>
 
         <div class="buscador">
             <input type="search"
@@ -357,7 +349,7 @@
         </article>
 
         <article class="tarjeta">
-            <h3>En preparación</h3>
+            <h3>Empaquetar</h3>
             <div class="numero">
                 <c:out value="${enPreparacion}"/>
             </div>
@@ -385,11 +377,6 @@
 
         <h2>Gestión de pedidos</h2>
 
-        <p class="descripcion-panel">
-            Los pedidos están separados por estado.
-            Abre un bloque para ver solo esos pedidos.
-        </p>
-
         <c:set var="hayBloques" value="false"/>
 
         <c:forEach var="bloque" items="${bloques}">
@@ -403,7 +390,7 @@
                     <summary>
                         <c:choose>
                             <c:when test="${bloque.key eq 'RECIBIDO'}">Pendientes</c:when>
-                            <c:when test="${bloque.key eq 'EN PREPARACIÓN'}">En preparación</c:when>
+                            <c:when test="${bloque.key eq 'EN PREPARACIÓN'}">Empaquetar</c:when>
                             <c:when test="${bloque.key eq 'LISTO'}">Listos para asignar</c:when>
                             <c:when test="${bloque.key eq 'ASIGNADO'}">Asignados</c:when>
                             <c:when test="${bloque.key eq 'EN CAMINO'}">En camino</c:when>
@@ -464,7 +451,7 @@
 
                                 <c:when test="${pedido.estado eq 'EN PREPARACIÓN'}">
                                     <span class="estado preparacion">
-                                        En preparación
+                                        Empaquetar
                                     </span>
                                 </c:when>
 
@@ -512,7 +499,7 @@
                         <td>
                             <c:choose>
                                 <c:when test="${not empty pedido.idRepartidor}">
-                                    Usuario #<c:out value="${pedido.idRepartidor}"/>
+                                    <c:out value="${nombresRepartidores[pedido.idRepartidor]}"/>
                                 </c:when>
 
                                 <c:otherwise>
@@ -551,7 +538,7 @@
                                         </c:if>
 
                                         <button type="submit" class="boton">
-                                            Iniciar preparación
+                                            Empaquetar
                                         </button>
                                     </form>
 
@@ -643,7 +630,14 @@
                                             <c:otherwise>
 
                                                 <span class="ayuda-repartidor">
-                                                    No hay repartidores activos disponibles.
+                                                    <c:choose>
+                                                        <c:when test="${hayRepartidoresOcupados}">
+                                                            Todos los repartidores ya tienen un pedido. Deben entregarlo antes de recibir otro.
+                                                        </c:when>
+                                                        <c:otherwise>
+                                                            No hay repartidores activos disponibles.
+                                                        </c:otherwise>
+                                                    </c:choose>
                                                 </span>
 
                                                 <button type="button"
@@ -661,6 +655,12 @@
                                 </c:when>
 
                                 
+
+                                <c:when test="${pedido.estado eq 'ENTREGADO'}">
+                                    <span class="sin-acciones">
+                                        Entrega registrada
+                                    </span>
+                                </c:when>
 
                                 <c:otherwise>
                                     <span class="sin-acciones">
@@ -690,6 +690,26 @@
 <footer class="pie">
     Mi Pastelería · Productos hechos con cariño
 </footer>
+
+<script>
+    (function () {
+        var clave = "cajeroPanelScroll";
+        var guardado = sessionStorage.getItem(clave);
+
+        if (guardado !== null) {
+            sessionStorage.removeItem(clave);
+            window.scrollTo(0, Number(guardado));
+        }
+
+        var formularios = document.querySelectorAll(".form-estado, .form-asignacion");
+
+        for (var i = 0; i < formularios.length; i++) {
+            formularios[i].addEventListener("submit", function () {
+                sessionStorage.setItem(clave, String(window.scrollY));
+            });
+        }
+    })();
+</script>
 
 </body>
 </html>

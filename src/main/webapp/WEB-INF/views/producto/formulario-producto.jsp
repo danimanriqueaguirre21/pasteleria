@@ -23,7 +23,7 @@
     <link rel="stylesheet" href="${pageContext.request.contextPath}/css/estilos.css">
 </head>
 
-<body class="pagina-formulario-producto">
+<body class="pagina-formulario-producto admin-app">
 
 <c:set var="tituloAdmin" value="Registrar producto"/>
 <c:if test="${producto.idProducto != null}">
@@ -265,6 +265,8 @@
     </div>
 
 </main>
+
+<%@ include file="../admin/pie.jsp" %>
 
 </body>
 </html>

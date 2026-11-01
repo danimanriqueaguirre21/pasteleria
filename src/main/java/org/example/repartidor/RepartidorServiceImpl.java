@@ -49,7 +49,7 @@ public class RepartidorServiceImpl implements RepartidorService {
         }
 
         validarRepartidor(idRepartidor);
-        exigirRepartidorLibre(idRepartidor);
+        exigirSinPedidoPendiente(idRepartidor);
 
         if (repartidorDAO.asignarRepartidor(idPedido, idRepartidor) != 1) {
             throw new IllegalStateException(
@@ -57,7 +57,20 @@ public class RepartidorServiceImpl implements RepartidorService {
         }
     }
 
-    private void exigirRepartidorLibre(int idRepartidor) {
+    @Override
+    public List<Integer> listarIdsConPedidoPendiente() {
+        return repartidorDAO.listarIdsConPedidoPendiente();
+    }
+
+    private void exigirSinPedidoPendiente(int idRepartidor) {
+        if (repartidorDAO.contarPedidosPendientes(idRepartidor) > 0) {
+            throw new IllegalArgumentException(
+                    "Este repartidor ya tiene un pedido asignado o en camino. Debe entregarlo antes de atender otro."
+            );
+        }
+    }
+
+    private void exigirSinPedidoEnCamino(int idRepartidor) {
         if (repartidorDAO.contarPedidosEnCamino(idRepartidor) > 0) {
             throw new IllegalArgumentException(
                     "Este repartidor ya tiene un pedido en camino. Debe entregarlo antes de atender otro."
@@ -106,7 +119,7 @@ public class RepartidorServiceImpl implements RepartidorService {
                     "Solo se puede iniciar el reparto de un pedido ASIGNADO");
         }
 
-        exigirRepartidorLibre(idRepartidor);
+        exigirSinPedidoEnCamino(idRepartidor);
 
         if (repartidorDAO.iniciarReparto(idPedido, idRepartidor) != 1) {
             throw new IllegalStateException(

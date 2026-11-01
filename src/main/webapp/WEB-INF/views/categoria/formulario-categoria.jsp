@@ -23,7 +23,7 @@
     <link rel="stylesheet" href="${pageContext.request.contextPath}/css/estilos.css">
 </head>
 
-<body class="pagina-formulario-categoria">
+<body class="pagina-formulario-categoria admin-app">
 
 <c:set var="tituloAdmin" value="Registrar categoría"/>
 <c:if test="${not empty categoria.idCategoria}">
@@ -165,6 +165,8 @@
     </div>
 
 </main>
+
+<%@ include file="../admin/pie.jsp" %>
 
 </body>
 </html>

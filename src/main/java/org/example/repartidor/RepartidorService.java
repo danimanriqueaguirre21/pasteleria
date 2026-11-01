@@ -8,6 +8,8 @@ public interface RepartidorService {
 
     void asignarRepartidor(int idPedido, int idRepartidor);
 
+    List<Integer> listarIdsConPedidoPendiente();
+
     List<Pedido> listarPedidosPorRepartidor(int idRepartidor);
 
     void iniciarReparto(int idPedido, int idRepartidor);

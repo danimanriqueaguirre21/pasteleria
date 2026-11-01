@@ -14,7 +14,7 @@
     <link rel="stylesheet" href="${pageContext.request.contextPath}/css/estilos.css">
 </head>
 
-<body class="categorias-pagina">
+<body class="categorias-pagina admin-app">
 
 <c:set var="tituloAdmin" value="Gestión de categorías"/>
 <c:set var="menuActivo" value="categorias"/>
@@ -156,9 +156,7 @@
 
 </main>
 
-<footer>
-    Mi Pastelería · Sistema de gestión
-</footer>
+<%@ include file="../admin/pie.jsp" %>
 
 </body>
 </html>

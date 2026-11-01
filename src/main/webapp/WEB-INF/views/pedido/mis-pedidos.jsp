@@ -251,7 +251,7 @@
                                 </td>
 
                                 <td>
-                                    <c:out value="${pedido.fechaPedido}"/>
+                                    <c:out value="${pedido.fechaPedidoTexto}"/>
                                 </td>
 
                                 <td>

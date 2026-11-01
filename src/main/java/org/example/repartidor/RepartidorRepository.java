@@ -61,6 +61,30 @@ public class RepartidorRepository implements RepartidorDAO {
     }
 
     @Override
+    public List<Integer> listarIdsConPedidoPendiente() {
+        String sql = """
+                SELECT DISTINCT id_repartidor
+                FROM pedido
+                WHERE id_repartidor IS NOT NULL
+                  AND estado IN ('ASIGNADO', 'EN CAMINO')
+                """;
+
+        return jdbcTemplate.query(sql, (rs, rowNum) -> rs.getInt(1));
+    }
+
+    @Override
+    public int contarPedidosPendientes(int idRepartidor) {
+        String sql = """
+                SELECT COUNT(*)
+                FROM pedido
+                WHERE id_repartidor = ?
+                  AND estado IN ('ASIGNADO', 'EN CAMINO')
+                """;
+
+        return contar(sql, idRepartidor);
+    }
+
+    @Override
     public int contarPedidosEnCamino(int idRepartidor) {
         String sql = """
                 SELECT COUNT(*)
@@ -69,6 +93,10 @@ public class RepartidorRepository implements RepartidorDAO {
                   AND estado = 'EN CAMINO'
                 """;
 
+        return contar(sql, idRepartidor);
+    }
+
+    private int contar(String sql, int idRepartidor) {
         Integer total = jdbcTemplate.queryForObject(sql, Integer.class, idRepartidor);
         return total == null ? 0 : total;
     }

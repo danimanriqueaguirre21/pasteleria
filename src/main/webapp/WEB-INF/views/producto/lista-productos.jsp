@@ -8,22 +8,19 @@
     <title>Gestión de productos - Mi Pastelería</title>
     <link rel="stylesheet" href="${pageContext.request.contextPath}/css/estilos.css">
 </head>
-<body class="pagina-productos">
+<body class="pagina-productos admin-app">
 <c:set var="tituloAdmin" value="Gestión de productos"/>
 <c:set var="menuActivo" value="productos"/>
 <%@ include file="../admin/menu.jsp" %>
 <main class="contenedor">
     <div class="barra-acciones">
+        <div>
+            <h2>Productos registrados</h2>
+            <p>Consulta y actualiza la información de los productos de tu pastelería.</p>
+        </div>
         <a class="boton boton-primario" href="${pageContext.request.contextPath}/productos/nuevo">+ Nuevo producto</a>
-        <a class="boton boton-secundario" href="${pageContext.request.contextPath}/categorias">Gestionar categorías</a>
     </div>
     <section class="panel">
-        <div class="panel-cabecera">
-            <div>
-                <h2>Productos registrados</h2>
-                <p>Consulta y actualiza la información de los productos de tu pastelería.</p>
-            </div>
-        </div>
         <div class="tabla-contenedor">
             <table>
                 <thead>
@@ -81,6 +78,6 @@
         </div>
     </section>
 </main>
-<footer>Mi Pastelería · Administración de productos</footer>
+<%@ include file="../admin/pie.jsp" %>
 </body>
 </html>

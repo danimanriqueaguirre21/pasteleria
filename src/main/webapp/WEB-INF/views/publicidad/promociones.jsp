@@ -65,16 +65,13 @@
             Carrito
         </a>
 
-        
-        <c:if test="${not empty sessionScope.idUsuario}">
-            <a href="${pageContext.request.contextPath}/pedido/historial">
-                Mis pedidos
-            </a>
+        <a href="${pageContext.request.contextPath}/pedido/historial">
+            Mis pedidos
+        </a>
 
-            <a href="${pageContext.request.contextPath}/pedido/seguimiento">
-                Seguimiento
-            </a>
-        </c:if>
+        <a href="${pageContext.request.contextPath}/pedido/seguimiento">
+            Seguimiento
+        </a>
 
         
         <c:if test="${sessionScope.rol eq 'ADMINISTRADOR'}">

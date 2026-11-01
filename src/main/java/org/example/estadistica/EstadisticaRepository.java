@@ -4,8 +4,10 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 import java.math.BigDecimal;
+import java.sql.Date;
 import java.time.LocalDate;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 @Repository
@@ -153,27 +155,37 @@ public class EstadisticaRepository implements EstadisticaDAO {
 
     private Map<LocalDate, BigDecimal> agruparDecimales(String sql, String columna) {
         Map<LocalDate, BigDecimal> resultado = new LinkedHashMap<>();
+        List<Map<String, Object>> filas = jdbcTemplate.queryForList(sql);
 
-        jdbcTemplate.query(sql, rs -> {
-            resultado.put(
-                    rs.getDate("fecha").toLocalDate(),
-                    rs.getBigDecimal(columna)
-            );
-        });
+        for (Map<String, Object> fila : filas) {
+            BigDecimal valor = (BigDecimal) fila.get(columna);
+            resultado.put(leerFecha(fila.get("fecha")), valor);
+        }
 
         return resultado;
     }
 
     private Map<LocalDate, Integer> agruparEnteros(String sql, String columna) {
         Map<LocalDate, Integer> resultado = new LinkedHashMap<>();
+        List<Map<String, Object>> filas = jdbcTemplate.queryForList(sql);
 
-        jdbcTemplate.query(sql, rs -> {
-            resultado.put(
-                    rs.getDate("fecha").toLocalDate(),
-                    rs.getInt(columna)
-            );
-        });
+        for (Map<String, Object> fila : filas) {
+            Number valor = (Number) fila.get(columna);
+            resultado.put(leerFecha(fila.get("fecha")), valor.intValue());
+        }
 
         return resultado;
+    }
+
+    private LocalDate leerFecha(Object valor) {
+        if (valor instanceof Date) {
+            return ((Date) valor).toLocalDate();
+        }
+
+        if (valor instanceof LocalDate) {
+            return (LocalDate) valor;
+        }
+
+        throw new IllegalStateException("La fecha del reporte no se pudo leer");
     }
 }

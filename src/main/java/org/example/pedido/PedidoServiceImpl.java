@@ -24,11 +24,6 @@ import java.util.UUID;
 @Service
 public class PedidoServiceImpl implements PedidoService {
 
-    private static final Map<String, String> SIGUIENTE_ESTADO = Map.of(
-            "RECIBIDO", "EN PREPARACIÓN",
-            "EN PREPARACIÓN", "LISTO"
-    );
-
     private final PedidoDAO pedidoDAO;
     private final UsuarioService usuarioService;
     private final ProductoService productoService;
@@ -69,9 +64,7 @@ public class PedidoServiceImpl implements PedidoService {
             );
         }
 
-        if (telefono == null ||
-                !telefono.matches("9[0-9]{8}")) {
-
+        if (!celularValido(telefono)) {
             throw new IllegalArgumentException(
                     "Ingrese un celular válido de 9 dígitos"
             );
@@ -266,11 +259,7 @@ public class PedidoServiceImpl implements PedidoService {
             );
         }
 
-        boolean transicionPermitida = nuevoEstado.equals(
-                SIGUIENTE_ESTADO.get(estadoActual)
-        );
-
-        if (!transicionPermitida) {
+        if (!esSiguienteEstado(estadoActual, nuevoEstado)) {
             throw new IllegalArgumentException(
                     "Transición no permitida. " +
                             "Solo se permite RECIBIDO a EN PREPARACIÓN " +
@@ -307,7 +296,7 @@ public class PedidoServiceImpl implements PedidoService {
         String codigo = codigoSeguimiento.trim()
                 .toUpperCase(Locale.ROOT);
 
-        if (!codigo.matches("PAS-[0-9]{4}-[A-F0-9]{16}")) {
+        if (!codigoSeguimientoValido(codigo)) {
             throw new IllegalArgumentException(
                     "Formato de código de seguimiento inválido"
             );
@@ -399,7 +388,7 @@ public class PedidoServiceImpl implements PedidoService {
             List<Integer> idProductos,
             List<Integer> cantidades) {
 
-        if (telefono == null || !telefono.matches("9[0-9]{8}")) {
+        if (!celularValido(telefono)) {
             throw new IllegalArgumentException(
                     "Ingrese un celular válido de 9 dígitos"
             );
@@ -599,6 +588,52 @@ public class PedidoServiceImpl implements PedidoService {
         }
 
         return conteo;
+    }
+
+    private boolean esSiguienteEstado(String estadoActual, String nuevoEstado) {
+        if ("RECIBIDO".equals(estadoActual) && "EN PREPARACIÓN".equals(nuevoEstado)) {
+            return true;
+        }
+
+        return "EN PREPARACIÓN".equals(estadoActual) && "LISTO".equals(nuevoEstado);
+    }
+
+    private boolean celularValido(String telefono) {
+        if (telefono == null || telefono.length() != 9 || telefono.charAt(0) != '9') {
+            return false;
+        }
+
+        for (int i = 1; i < telefono.length(); i++) {
+            if (!Character.isDigit(telefono.charAt(i))) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private boolean codigoSeguimientoValido(String codigo) {
+        if (codigo.length() != 25 || !codigo.startsWith("PAS-") || codigo.charAt(8) != '-') {
+            return false;
+        }
+
+        for (int i = 4; i <= 7; i++) {
+            if (!Character.isDigit(codigo.charAt(i))) {
+                return false;
+            }
+        }
+
+        for (int i = 9; i < codigo.length(); i++) {
+            char caracter = codigo.charAt(i);
+            boolean esNumero = caracter >= '0' && caracter <= '9';
+            boolean esLetra = caracter >= 'A' && caracter <= 'F';
+
+            if (!esNumero && !esLetra) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     private boolean pagoWebValido(String medioPago) {

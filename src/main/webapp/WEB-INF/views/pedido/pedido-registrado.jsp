@@ -21,10 +21,78 @@
         <p>Endulzamos tus mejores momentos</p>
     </div>
 
-    <nav class="menu" aria-label="Navegación principal">
-        <a href="${pageContext.request.contextPath}/catalogo">Inicio</a>
-        <a href="${pageContext.request.contextPath}/carrito">Mi carrito</a>
-        <a href="${pageContext.request.contextPath}/pedido/historial">Mis pedidos</a>
+    <nav class="menu" aria-label="Menú principal">
+
+        <a href="${pageContext.request.contextPath}/catalogo">
+            Catálogo
+        </a>
+
+        <a href="${pageContext.request.contextPath}/publicidad">
+            Promociones
+        </a>
+
+        <a href="${pageContext.request.contextPath}/contacto">
+            Contacto
+        </a>
+
+        <a href="${pageContext.request.contextPath}/carrito">
+            Carrito
+        </a>
+
+        <c:if test="${not empty sessionScope.idUsuario}">
+
+            <a class="activo"
+               aria-current="page"
+               href="${pageContext.request.contextPath}/pedido/historial">
+                Mis pedidos
+            </a>
+
+            <a href="${pageContext.request.contextPath}/pedido/seguimiento">
+                Seguimiento
+            </a>
+
+        </c:if>
+
+        <c:choose>
+
+            <c:when test="${not empty sessionScope.idUsuario}">
+
+                <span class="nombre-usuario">
+                    Hola,
+                    <c:out value="${sessionScope.nombreUsuario}"/>
+                </span>
+
+                <form action="${pageContext.request.contextPath}/usuario/logout"
+                      method="post">
+
+                    <c:if test="${not empty _csrf}">
+                        <input type="hidden"
+                               name="${_csrf.parameterName}"
+                               value="${_csrf.token}">
+                    </c:if>
+
+                    <button type="submit">
+                        Cerrar sesión
+                    </button>
+
+                </form>
+            </c:when>
+
+            <c:otherwise>
+
+                <a href="${pageContext.request.contextPath}/usuario/login">
+                    Iniciar sesión
+                </a>
+
+                <a class="salir"
+                   href="${pageContext.request.contextPath}/usuario/registro">
+                    Registrarse
+                </a>
+
+            </c:otherwise>
+
+        </c:choose>
+
     </nav>
 </header>
 
@@ -51,7 +119,7 @@
 
         <p>
             <strong>Fecha:</strong>
-            <c:out value="${pedido.fechaPedido}"/>
+            <c:out value="${pedido.fechaPedidoTexto}"/>
         </p>
 
         <p>

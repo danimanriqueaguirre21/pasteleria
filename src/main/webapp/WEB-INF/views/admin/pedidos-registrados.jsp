@@ -9,20 +9,16 @@
     <title>Administrar pedidos - Mi Pastelería</title>
     <link rel="stylesheet" href="${pageContext.request.contextPath}/css/estilos.css">
 </head>
-<body class="pagina-admin-pedidos">
-<c:set var="tituloAdmin" value="Gestión de Pedidos"/>
+<body class="pagina-admin-pedidos admin-app">
+<c:set var="tituloAdmin" value="Gestión de pedidos"/>
 <c:set var="menuActivo" value="pedidos"/>
 <%@ include file="menu.jsp" %>
 <main class="contenedor admin-pedidos-contenedor">
-    <section class="panel-pedidos">
+    <div class="barra-listado">
         <h2>Pedidos registrados</h2>
-        <p class="descripcion">Los pedidos están separados por estado. Abre un bloque para ver solo esos pedidos. La asignación y la entrega corresponden al cajero y al repartidor.</p>
-        <c:if test="${not empty mensaje}">
-            <div class="mensaje" role="status"><c:out value="${mensaje}"/></div>
-        </c:if>
-        <c:if test="${not empty error}">
-            <div class="error" role="alert"><c:out value="${error}"/></div>
-        </c:if>
+        <p>Los pedidos están separados por estado. Desde aquí solo se consultan. El cajero cambia el estado y asigna al repartidor.</p>
+    </div>
+    <section class="panel-pedidos">
         <c:set var="hayBloques" value="false"/>
 
         <c:forEach var="bloque" items="${bloques}">
@@ -58,7 +54,6 @@
                                 <th scope="col">Total</th>
                                 <th scope="col">Medio de pago</th>
                                 <th scope="col">Estado actual</th>
-                                <th scope="col">Actualizar estado</th>
                             </tr>
                             </thead>
                             <tbody>
@@ -69,7 +64,7 @@
                                 <td>
                                     <c:out value="${empty resumenProductos[pedido.idPedido] ? 'Sin productos' : resumenProductos[pedido.idPedido]}"/>
                                 </td>
-                                <td><c:out value="${pedido.fechaPedido}"/></td>
+                                <td><c:out value="${pedido.fechaPedidoTexto}"/></td>
                                 <td><c:out value="${pedido.direccionEntrega}"/></td>
                                 <td><c:out value="${pedido.telefono}"/></td>
                                 <td class="precio">S/ <c:out value="${pedido.total}"/></td>
@@ -96,29 +91,6 @@
                                         <c:otherwise><span class="estado"><c:out value="${pedido.estado}"/></span></c:otherwise>
                                     </c:choose>
                                 </td>
-                                <td>
-                                    <c:choose>
-                                        <c:when test="${pedido.estado eq 'RECIBIDO' or pedido.estado eq 'EN PREPARACIÓN'}">
-                                            <form class="formulario-estado" action="${pageContext.request.contextPath}/admin/pedidos/estado" method="post">
-                                                <input type="hidden" name="idPedido" value="${pedido.idPedido}">
-                                                <c:if test="${not empty _csrf}">
-                                                    <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
-                                                </c:if>
-                                                <select name="nuevoEstado" aria-label="Nuevo estado del pedido ${pedido.idPedido}" required>
-                                                    <c:if test="${pedido.estado eq 'RECIBIDO'}"><option value="EN PREPARACIÓN">EN PREPARACIÓN</option></c:if>
-                                                    <c:if test="${pedido.estado eq 'EN PREPARACIÓN'}"><option value="LISTO">LISTO</option></c:if>
-                                                </select>
-                                                <button type="submit">Actualizar</button>
-                                            </form>
-                                        </c:when>
-                                        <c:when test="${pedido.estado eq 'ENTREGADO'}"><span class="finalizado">Pedido finalizado</span></c:when>
-                                        <c:when test="${pedido.estado eq 'CANCELADO'}"><span class="texto-cancelado">Pedido cancelado</span></c:when>
-                                        <c:when test="${pedido.estado eq 'LISTO'}"><span>Esperando asignación del cajero</span></c:when>
-                                        <c:when test="${pedido.estado eq 'ASIGNADO'}"><span>Esperando recogida del repartidor</span></c:when>
-                                        <c:when test="${pedido.estado eq 'EN CAMINO'}"><span>En proceso de entrega</span></c:when>
-                                        <c:otherwise><span>Sin acciones disponibles</span></c:otherwise>
-                                    </c:choose>
-                                </td>
                             </tr>
                             </c:forEach>
                             </tbody>
@@ -134,6 +106,6 @@
 
     </section>
 </main>
-<footer class="pie">Sistema de gestión de pastelería</footer>
+<%@ include file="pie.jsp" %>
 </body>
 </html>

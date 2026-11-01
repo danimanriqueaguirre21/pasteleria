@@ -34,11 +34,15 @@
         <input type="password" id="contrasena" name="contrasena"
                placeholder="Ingresa tu contraseña" autocomplete="current-password" required>
 
+        <c:if test="${not empty siguiente}">
+            <input type="hidden" name="siguiente" value="<c:out value='${siguiente}'/>">
+        </c:if>
+
         <button type="submit" class="btn-login">Iniciar sesión</button>
     </form>
 
     <p class="registro">¿No tienes una cuenta?
-        <a href="${pageContext.request.contextPath}/usuario/registro">Regístrate aquí</a>
+        <a href="${pageContext.request.contextPath}/usuario/registro<c:if test='${not empty siguienteUrl}'>?siguiente=<c:out value='${siguienteUrl}'/></c:if>">Regístrate aquí</a>
     </p>
     <div class="volver">
         <a href="${pageContext.request.contextPath}/catalogo">← Volver al catálogo</a>

@@ -40,11 +40,15 @@
                minlength="8" autocomplete="new-password" aria-describedby="nota-contrasena" required>
         <p class="nota" id="nota-contrasena">La contraseña debe tener al menos 8 caracteres.</p>
 
+        <c:if test="${not empty siguiente}">
+            <input type="hidden" name="siguiente" value="<c:out value='${siguiente}'/>">
+        </c:if>
+
         <button type="submit" class="btn-registrar">Crear cuenta</button>
     </form>
 
     <div class="enlace">¿Ya tienes una cuenta?
-        <a href="${pageContext.request.contextPath}/usuario/login">Inicia sesión</a>
+        <a href="${pageContext.request.contextPath}/usuario/login<c:if test='${not empty siguienteUrl}'>?siguiente=<c:out value='${siguienteUrl}'/></c:if>">Inicia sesión</a>
     </div>
     <div class="enlace volver">
         <a href="${pageContext.request.contextPath}/catalogo">← Volver al catálogo</a>

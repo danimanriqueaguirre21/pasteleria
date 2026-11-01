@@ -176,7 +176,7 @@
 
 <main class="contenedor seguimiento-contenedor">
 
-    <h2>📦 Seguimiento de tu pedido</h2>
+    <h2>Seguimiento de tu pedido</h2>
 
     <p class="descripcion">
         Introduce el código de seguimiento que recibiste al confirmar
@@ -233,7 +233,7 @@
 
             <p class="dato">
                 <strong>Fecha de compra:</strong>
-                <c:out value="${pedido.fechaPedido}"/>
+                <c:out value="${pedido.fechaPedidoTexto}"/>
             </p>
 
             <p class="dato">

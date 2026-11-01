@@ -16,7 +16,7 @@
     <link rel="stylesheet" href="${pageContext.request.contextPath}/css/estilos.css">
 </head>
 
-<body class="estadisticas-page">
+<body class="estadisticas-page admin-app">
 
 <c:set var="tituloAdmin" value="Resumen"/>
 <c:set var="menuActivo" value="dashboard"/>
@@ -233,9 +233,7 @@
 
 </main>
 
-<footer class="estadisticas-pie">
-    Sistema de gestión de Mi Pastelería
-</footer>
+<%@ include file="pie.jsp" %>
 
 <script>
     function crearGrafico(
